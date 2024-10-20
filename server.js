@@ -40,6 +40,51 @@ app.use('/api/v1/channels', channeRoutes);
 app.use('/api/v1/messages', messageRoutes);
 app.use('/api/auth', authRoutes);
 
+// Endpoint to return all available routes
+app.get('/api/routes', (req, res) => {
+  const routes = listRoutes();
+  res.json({ availableRoutes: routes });
+});
+
+function listRoutes() {
+  const routes = [];
+
+  app._router.stack.forEach((middleware) => {
+    if (middleware.route) {
+      // Handle routes registered directly on the app
+      const method = Object.keys(middleware.route.methods)[0].toUpperCase();
+      const path = cleanPath(middleware.route.path);
+      routes.push({ method, path });
+    } else if (middleware.name === 'router' && middleware.handle.stack) {
+      // For routers, iterate through the stack
+      middleware.handle.stack.forEach((handler) => {
+        if (handler.route) {
+          const method = Object.keys(handler.route.methods)[0].toUpperCase();
+          const routePath = cleanPath(handler.route.path);
+          const basePath = middleware.regexp.source
+            .replace(/^\^/, '')
+            .replace(/\\\//g, '/')
+            .replace(/\/$/, ''); // Clean up base path
+
+          // Combine base and specific route paths
+          routes.push({ method, path: cleanPath(basePath + routePath) });
+        }
+      });
+    }
+  });
+
+  return routes;
+}
+
+// Helper function to clean path
+function cleanPath(path) {
+  return path
+    .replace(/\/\?(\(\?=.*\)|\(\?=\/)/g, '') // Remove optional regex patterns
+    .replace(/\/:([^/]+)/g, '/$1') // Convert :param to /param
+    .replace(/\/{2,}/g, '/') // Remove any duplicate slashes
+    .replace(/\/$/, ''); // Remove trailing slashes
+}
+
 // Catch-all route for undefined endpoints
 app.all('*', (req, res) => {
   return res.status(404).json({ status: "fail", error: "Endpoint does not exist" });
