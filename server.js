@@ -81,6 +81,7 @@ function cleanPath(path) {
   return path
     .replace(/\/\?(\(\?=.*\)|\(\?=\/)/g, '') // Remove optional regex patterns
     .replace(/\/:([^/]+)/g, '/$1') // Convert :param to /param
+    .replace(/\/uuid/g, '/<uuid>') // Replace /uuid with /<uuid>
     .replace(/\/{2,}/g, '/') // Remove any duplicate slashes
     .replace(/\/$/, ''); // Remove trailing slashes
 }
