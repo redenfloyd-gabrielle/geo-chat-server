@@ -50,6 +50,7 @@ const createTables = function () {
         latitude TEXT NOT NULL,
         longitude TEXT NOT NULL,
         weather TEXT,
+        created_on INTEGER NOT NULL,
         modified_on INTEGER NOT NULL,
         FOREIGN KEY (channel_uuid) REFERENCES Channel(uuid),
         FOREIGN KEY (user_uuid) REFERENCES User(uuid)
@@ -265,7 +266,7 @@ const addChannel = function (channelPayload, callback) {
 };
 
 const updateChannel = function (uuid, channelPayload, callback) {
-  const { name, user_uuids, type } = channelPayload;
+  const { name, user_uuids, type, modified_on } = channelPayload;
   const updates = [];
   const params = [];
 
@@ -282,6 +283,11 @@ const updateChannel = function (uuid, channelPayload, callback) {
   if (type) {
     updates.push('type = ?');
     params.push(type);
+  }
+
+  if (modified_on) {
+    updates.push('modified_on = ?');
+    params.push(modified_on);
   }
 
   if (updates.length === 0) {
@@ -369,7 +375,7 @@ const addMessage = function (messagePayload, callback) {
 };
 
 const updateMessage = function (uuid, messagePayload, callback) {
-  const { message } = messagePayload;
+  const { message, modified_on } = messagePayload;
   const updates = [];
   const params = [];
 
@@ -436,6 +442,122 @@ const getMessageByChannel = function (uuid, callback) {
   });
 };
 
+const getAllLocations = function (callback) {
+  db.all('SELECT * FROM location', [], (err, rows) => {
+    callback(err, rows);
+  });
+};
+
+
+const getLocationByUuid = function (uuid, callback) {
+  const query = 'SELECT * FROM location WHERE uuid = ?';
+  db.get(query, [uuid], (err, row) => {
+    if (err) {
+      return callback(err);
+    }
+    callback(null, row);
+  });
+};
+
+const getLocationByUser = function (userUuid, callback) {
+  const query = 'SELECT * FROM location WHERE user_uuid = ?';
+  db.get(query, [userUuid], (err, row) => {
+    if (err) {
+      return callback(err);
+    }
+    callback(null, row);
+  });
+};
+
+const addLocation = function (locationPayload, callback) {
+
+  const query = 'INSERT INTO location (uuid, channel_uuid, user_uuid, latitude, longitude, created_on, modified_on) VALUES (?, ?, ?, ?, ?, ?, ?)';
+  console.log('userPayload :: ', locationPayload);
+
+  const params = [
+    locationPayload.uuid,
+    locationPayload.channel_uuid,
+    locationPayload.user_uuid,
+    locationPayload.latitude,
+    locationPayload.longitude,
+    locationPayload.created_on,
+    locationPayload.modified_on
+  ];
+
+  db.run(query, params, function (err) {
+    if (err) {
+      // Handle error appropriately
+      console.log('err :: ', err);
+      return callback(err, null);
+    }
+    // Pass the ID of the newly created user to the callback
+    callback(null, locationPayload);
+  });
+};
+
+const updateLocation = function (uuid, locationPayload, callback) {
+  const { latitude, longitude, modified_on } = locationPayload;
+  const updates = [];
+  const params = [];
+
+  if (latitude) {
+    updates.push('latitude = ?');
+    params.push(latitude);
+  }
+
+  if (longitude) {
+    updates.push('longitude = ?');
+    params.push(longitude);
+  }
+
+  if (modified_on) {
+    updates.push('modified_on = ?');
+    params.push(modified_on);
+  }
+
+  if (updates.length === 0) {
+    return callback(null, null); // No updates to make
+  }
+
+  const query = `UPDATE location SET ${updates.join(', ')} WHERE uuid = ?`;
+  params.push(uuid); // Add uuid to the parameters
+
+  db.run(query, params, function (err) {
+    if (err) {
+      return callback(err);
+    }
+
+    // Check if any row was updated
+    if (this.changes === 0) {
+      return callback(null, null); // No user found with that UUID
+    }
+
+    // Fetch the updated user to return
+    getLocationByUuid(uuid, callback); // Fetch the updated user data
+  });
+};
+
+const deleteLocation = function (uuid, callback) {
+  const query = 'DELETE FROM location WHERE uuid = ?';
+
+  db.run(query, [uuid], function (err) {
+    if (err) {
+      // Handle error appropriately
+      console.log('err :: ', err);
+      return callback(err, null);
+    }
+    // Check if any rows were deleted
+    if (this.changes === 0) {
+      // No user was found with the provided UUID
+      return callback(null, null); // Or callback(null, { message: 'User not found' });
+    }
+
+    // Pass a success message or the UUID of the deleted user to the callback
+    callback(null, { message: `Location ${uuid} deleted successfully`, uuid });
+  });
+};
+
+
 
 
 
@@ -455,8 +577,16 @@ module.exports = {
   deleteChannel,
   getAllMessages,
   getMessageByUuid,
+  getMessageByChannel,
   addMessage,
   updateMessage,
   deleteMessage,
-  getMessageByChannel
+  getAllLocations,
+  getLocationByUuid,
+  getLocationByUser,
+  addLocation,
+  updateLocation,
+  deleteLocation
+
+
 };

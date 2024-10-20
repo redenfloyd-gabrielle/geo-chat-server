@@ -1,3 +1,4 @@
+
 const express = require('express');
 const router = express.Router();
 const db = require('../../../services/db');
@@ -28,7 +29,7 @@ router.post('/', async (req, res) => {
     modified_on: createdOn
   }
 
-  db.addMessage(payload, (err, message) => {
+  db.addLocation(payload, (err, message) => {
     if (err) {
       console.error('Error adding user:', err);
       return res.status(500).json({ status: "fail", error: `Failed to create message :: ${err.message}` });
@@ -41,7 +42,7 @@ router.post('/', async (req, res) => {
 });
 
 router.get('/', (req, res) => {
-  db.getAllMessages((err, rows) => {
+  db.getAllLocations((err, rows) => {
     if (err) {
       return res.status(500).json({ status: "fail", error: err.message });
     }
@@ -53,7 +54,7 @@ router.get('/', (req, res) => {
 router.get('/:uuid', (req, res) => {
   const { uuid } = req.params;
   console.log('req.params', req.params)
-  db.getUserByUUID(uuid, (err, message) => {
+  db.getLocationByUuid(uuid, (err, message) => {
     if (err) {
       return res.status(500).json({ status: "fail", error: err.message });
     }
@@ -66,10 +67,10 @@ router.get('/:uuid', (req, res) => {
   });
 });
 
-router.get('/channel_uuid/:uuid', (req, res) => {
+router.get('/user_uuid/:uuid', (req, res) => {
   const { uuid } = req.params;
   console.log('req.params', req.params)
-  db.getMessageByChannel(uuid, (err, messages) => {
+  db.getLocationByUser(uuid, (err, messages) => {
     if (err) {
       return res.status(500).json({ status: "fail", error: err.message });
     }
@@ -102,7 +103,7 @@ router.put('/:uuid', (req, res) => {
   console.log('payload', payload);
 
   // Call the database update function
-  db.updateUser(uuid, payload, (err, user) => {
+  db.updateLocation(uuid, payload, (err, user) => {
     if (err) {
       return res.status(500).json({ status: "fail", error: err.message });
     }
@@ -120,7 +121,7 @@ router.put('/:uuid', (req, res) => {
 router.delete('/:uuid', (req, res) => {
   const { uuid } = req.params;
   console.log('req.params', req.params)
-  db.deleteMessage(uuid, (err, result) => {
+  db.deleteLocation(uuid, (err, result) => {
     if (err) {
       return res.status(500).json({ status: "fail", error: err.message });
     }
