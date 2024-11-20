@@ -12,7 +12,7 @@ const cors = require('cors');
 const app = express();
 
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow specific methods
   allowedHeaders: ['Content-Type'], // Allow specific headers
   credentials: true // Allow credentials such as cookies
@@ -25,7 +25,7 @@ const server = http.createServer(app);
 // Initialize Socket.IO
 const io = socketIo(server, {
   cors: {
-    origin: 'http://localhost:5173', // Allow your Vue app
+    origin: '*', // Allow your Vue app
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
   }
