@@ -87,7 +87,7 @@ const getUserByEmail = function (email, callback) {
 };
 
 const getUserByUsername = function (username, callback) {
-  const query = 'SELECT uuid, fullname, email, username, created_on, modified_on FROM user WHERE username = ?';
+  const query = 'SELECT * FROM user WHERE username = ?';
 
   db.get(query, [username], (err, row) => {
     if (err) {
@@ -635,6 +635,4 @@ module.exports = {
   addLocation,
   updateLocation,
   deleteLocation
-
-
 };
