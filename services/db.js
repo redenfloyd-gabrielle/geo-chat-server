@@ -28,7 +28,7 @@ const createTables = function () {
         name TEXT NOT NULL,
         user_uuids TEXT NOT NULL,
         type TEXT CHECK(type IN ('Group', 'Direct Message')),
-        created_on TEXT NOT NULL,
+        created_on INTEGER NOT NULL,
         modified_on INTEGER NOT NULL
     )`);
 
@@ -56,11 +56,13 @@ const createTables = function () {
         FOREIGN KEY (user_uuid) REFERENCES User(uuid)
     )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS friend (
+    db.run(`CREATE TABLE IF NOT EXISTS friendship (
+        uuid TEXT PRIMARY KEY,
         user1_uuid TEXT NOT NULL,
         user2_uuid TEXT NOT NULL,
-        created_on TEXT NOT NULL,
-        PRIMARY KEY (user1_uuid, user2_uuid),
+        status TEXT CHECK (status IN ('Pending', 'Accepted', 'Blocked')),
+        created_on INTEGER NOT NULL,
+        modified_on INTEGER NOT NULL,
         FOREIGN KEY (user1_uuid) REFERENCES User(uuid),
         FOREIGN KEY (user2_uuid) REFERENCES User(uuid)
     )`);
@@ -237,8 +239,10 @@ const getChannelByUUID = function (uuid, callback) {
 
 const getChannelsByUserUuid = function (userUuid, callback) {
   const query = `
-    SELECT * FROM channel
-    WHERE instr(user_uuids, ?) > 0`;
+    SELECT *
+    FROM channel
+    WHERE instr(user_uuids, ?) > 0
+  `;
 
   // This parameter assumes the UUID is stored in a JSON-like string with quotes
   const parameter = `"${userUuid}"`; // Matches the UUID with quotes
@@ -248,7 +252,40 @@ const getChannelsByUserUuid = function (userUuid, callback) {
       console.error('Error fetching channels for user UUID:', err);
       return callback(err, null);
     }
-    callback(null, rows);
+
+    if (rows.length === 0) {
+      return callback(null, []); // Return empty array if no channels found
+    }
+
+    // Parse `user_uuids` from each channel and fetch user details
+    const allUserUuids = Array.from(
+      new Set(
+        rows.flatMap(row => JSON.parse(row.user_uuids)) // Parse and flatten user_uuids
+      )
+    );
+
+    const userQuery = `
+      SELECT uuid, fullname, email, username, created_on, modified_on
+      FROM "user"
+      WHERE uuid IN (${allUserUuids.map(() => '?').join(', ')});
+    `;
+
+    db.all(userQuery, allUserUuids, (userErr, userRows) => {
+      if (userErr) {
+        console.error('Error fetching user details:', userErr);
+        return callback(userErr, null);
+      }
+      console.log('user rows::', userRows)
+      // Map each channel to include its user details, excluding null values
+      const result = rows.map(channel => ({
+        ...channel,
+        users: JSON.parse(channel.user_uuids)
+          .map(uuid => userRows.find(user => user.uuid === uuid))
+          .filter(user => user)
+      }));
+
+      callback(null, result);
+    });
   });
 };
 
@@ -468,13 +505,84 @@ const deleteMessage = function (uuid, callback) {
 };
 
 const getMessageByChannel = function (uuid, callback) {
-  const query = 'SELECT * FROM message WHERE channel_uuid = ?';
-  db.all(query, [uuid], (err, row) => {
+  const query = `
+    SELECT
+        m.uuid AS message_uuid,
+        m.message,
+        m.created_on AS message_created_on,
+        m.modified_on AS message_modified_on,
+        c.uuid AS channel_uuid,
+        c.name AS channel_name,
+        c.type AS channel_type,
+        c.user_uuids AS channel_user_uuids,
+        c.created_on AS channel_created_on,
+        c.modified_on AS channel_modified_on,
+        u.uuid AS user_uuid,
+        u.fullname AS user_fullname,
+        u.email AS user_email,
+        u.username AS user_username,
+        u.created_on AS user_created_on,
+        u.modified_on AS user_modified_on
+    FROM message m
+    JOIN channel c ON m.channel_uuid = c.uuid
+    JOIN "user" u ON m.user_uuid = u.uuid
+    WHERE m.channel_uuid = ?
+    ORDER BY m.created_on;
+  `;
+  db.all(query, [uuid], (err, rows) => {
     if (err) {
       return callback(err);
     }
 
-    callback(null, row);
+    // Parse the channel_user_uuids for additional user details
+    if (rows.length > 0) {
+      const channelUserUuids = JSON.parse(rows[0].channel_user_uuids);
+
+      // Query additional user details
+      const userQuery = `
+        SELECT uuid, fullname, email, username, created_on, modified_on
+        FROM "user"
+        WHERE uuid IN (${channelUserUuids.map(() => '?').join(',')});
+      `;
+
+      db.all(userQuery, channelUserUuids, (userErr, userRows) => {
+        if (userErr) {
+          return callback(userErr);
+        }
+
+        // Transform the original rows with the additional user data
+        const result = rows.map(row => ({
+          message: {
+            uuid: row.message_uuid,
+            message: row.message,
+            created_on: row.message_created_on,
+            modified_on: row.message_modified_on,
+            channel: {
+              uuid: row.channel_uuid,
+              name: row.channel_name,
+              type: row.channel_type,
+              user_uuids: channelUserUuids,
+              users: userRows, // Add the user details here
+              created_on: row.channel_created_on,
+              modified_on: row.channel_modified_on
+            },
+            user: {
+              uuid: row.user_uuid,
+              fullname: row.user_fullname,
+              email: row.user_email,
+              username: row.user_username,
+              created_on: row.user_created_on,
+              modified_on: row.user_modified_on
+            }
+          }
+        }));
+
+        callback(null, result);
+      });
+    } else {
+      // No rows found, return empty result
+      callback(null, []);
+    }
   });
 };
 
@@ -483,7 +591,6 @@ const getAllLocations = function (callback) {
     callback(err, rows);
   });
 };
-
 
 const getLocationByUuid = function (uuid, callback) {
   const query = 'SELECT * FROM location WHERE uuid = ?';
@@ -605,7 +712,275 @@ const deleteLocation = function (uuid, callback) {
   });
 };
 
+const getAllFriendships = function (callback) {
+  const query = `
+    SELECT
+      f.uuid AS friendship_uuid,
+      f.user1_uuid,
+      f.user2_uuid,
+      f.status,
+      f.created_on,
+      f.modified_on,
+      u1.uuid AS user1_uuid,
+      u1.fullname AS user1_fullname,
+      u1.email AS user1_email,
+      u1.username AS user1_username,
+      u1.created_on AS user1_created_on,
+      u1.modified_on AS user1_modified_on,
+      u2.uuid AS user2_uuid,
+      u2.fullname AS user2_fullname,
+      u2.email AS user2_email,
+      u2.username AS user2_username,
+      u2.created_on AS user2_created_on,
+      u2.modified_on AS user2_modified_on
+    FROM friendship f
+    JOIN "user" u1 ON f.user1_uuid = u1.uuid
+    JOIN "user" u2 ON f.user2_uuid = u2.uuid
+  `;
 
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      return callback(err, null);
+    }
+
+    // Restructure the data into the desired format
+    const friendsData = rows.map(row => ({
+      uuid: row.friendship_uuid,
+      user1_uuid: row.user1_uuid,
+      user1: {
+        uuid: row.user1_uuid,
+        fullname: row.user1_fullname,
+        email: row.user1_email,
+        username: row.user1_username,
+        created_on: row.user1_created_on,
+        modified_on: row.user1_modified_on
+      },
+      user2_uuid: row.user2_uuid,
+      user2: {
+        uuid: row.user2_uuid,
+        fullname: row.user2_fullname,
+        email: row.user2_email,
+        username: row.user2_username,
+        created_on: row.user2_created_on,
+        modified_on: row.user2_modified_on
+      },
+      status: row.status,
+      created_on: row.created_on,
+      modified_on: row.modified_on
+    }));
+
+    callback(null, friendsData);
+  });
+};
+
+const getFriendshipByUuid = function (uuid, callback) {
+  const query = `
+    SELECT
+      f.uuid AS friendship_uuid,
+      f.user1_uuid,
+      f.user2_uuid,
+      f.status,
+      f.created_on,
+      f.modified_on,
+      u1.uuid AS user1_uuid,
+      u1.fullname AS user1_fullname,
+      u1.email AS user1_email,
+      u1.username AS user1_username,
+      u1.created_on AS user1_created_on,
+      u1.modified_on AS user1_modified_on,
+      u2.uuid AS user2_uuid,
+      u2.fullname AS user2_fullname,
+      u2.email AS user2_email,
+      u2.username AS user2_username,
+      u2.created_on AS user2_created_on,
+      u2.modified_on AS user2_modified_on
+    FROM friendship f
+    JOIN "user" u1 ON f.user1_uuid = u1.uuid
+    JOIN "user" u2 ON f.user2_uuid = u2.uuid
+    WHERE f.uuid = ?
+  `;
+
+  db.get(query, [uuid], (err, row) => {
+    if (err) {
+      return callback(err);
+    }
+
+    if (!row) {
+      return callback(null, null);
+    }
+
+    // Restructure the row data into the desired format
+    const friendData = {
+      uuid: row.friendship_uuid,
+      user1_uuid: row.user1_uuid,
+      user1: {
+        uuid: row.user1_uuid,
+        fullname: row.user1_fullname,
+        email: row.user1_email,
+        username: row.user1_username,
+        created_on: row.user1_created_on,
+        modified_on: row.user1_modified_on
+      },
+      user2_uuid: row.user2_uuid,
+      user2: {
+        uuid: row.user2_uuid,
+        fullname: row.user2_fullname,
+        email: row.user2_email,
+        username: row.user2_username,
+        created_on: row.user2_created_on,
+        modified_on: row.user2_modified_on
+      },
+      status: row.status,
+      created_on: row.created_on,
+      modified_on: row.modified_on
+    };
+
+    callback(null, friendData);
+  });
+};
+
+const getFriendshipByUserUuid = function (uuid, callback) {
+  const query = `
+    SELECT
+      f.uuid AS friendship_uuid,
+      f.user1_uuid,
+      f.user2_uuid,
+      f.status,
+      f.created_on,
+      f.modified_on,
+      u1.uuid AS user1_uuid,
+      u1.fullname AS user1_fullname,
+      u1.email AS user1_email,
+      u1.username AS user1_username,
+      u1.created_on AS user1_created_on,
+      u1.modified_on AS user1_modified_on,
+      u2.uuid AS user2_uuid,
+      u2.fullname AS user2_fullname,
+      u2.email AS user2_email,
+      u2.username AS user2_username,
+      u2.created_on AS user2_created_on,
+      u2.modified_on AS user2_modified_on
+    FROM friendship f
+    JOIN "user" u1 ON f.user1_uuid = u1.uuid
+    JOIN "user" u2 ON f.user2_uuid = u2.uuid
+    WHERE f.user1_uuid = ? OR f.user2_uuid = ?
+  `;
+
+  db.all(query, [uuid, uuid], (err, rows) => {
+    if (err) {
+      return callback(err);
+    }
+
+    if (rows.length === 0) {
+      return callback(null, []);
+    }
+
+    // Restructure the rows data into the desired format
+    const friendData = rows.map(row => ({
+      uuid: row.friendship_uuid,
+      user1_uuid: row.user1_uuid,
+      user1: {
+        uuid: row.user1_uuid,
+        fullname: row.user1_fullname,
+        email: row.user1_email,
+        username: row.user1_username,
+        created_on: row.user1_created_on,
+        modified_on: row.user1_modified_on
+      },
+      user2_uuid: row.user2_uuid,
+      user2: {
+        uuid: row.user2_uuid,
+        fullname: row.user2_fullname,
+        email: row.user2_email,
+        username: row.user2_username,
+        created_on: row.user2_created_on,
+        modified_on: row.user2_modified_on
+      },
+      status: row.status,
+      created_on: row.created_on,
+      modified_on: row.modified_on
+    }));
+
+    callback(null, friendData);
+  });
+};
+
+const updateFriendship = function (uuid, friendshipPayload, callback) {
+  const { user1_uuid, user2_uuid, status, modified_on } = friendshipPayload;
+  const updates = [];
+  const params = [];
+
+  if (user1_uuid) {
+    updates.push('user1_uuid = ?');
+    params.push(user1_uuid);
+  }
+  if (user2_uuid) {
+    updates.push('user2_uuid = ?');
+    params.push(user2_uuid);
+  }
+  if (status) {
+    updates.push('status = ?');
+    params.push(status);
+  }
+
+  if (modified_on) {
+    updates.push('modified_on = ?');
+    params.push(modified_on);
+  }
+
+  if (updates.length === 0) {
+    return callback(null, null); // No updates to make
+  }
+
+  const query = `UPDATE friendship SET ${updates.join(', ')} WHERE uuid = ?`;
+  params.push(uuid); // Add uuid to the parameters
+
+  db.run(query, params, function (err) {
+    if (err) {
+      return callback(err);
+    }
+
+    // Check if any row was updated
+    if (this.changes === 0) {
+      return callback(null, null); // No user found with that UUID
+    }
+
+    // Fetch the updated user to return
+    getFriendshipByUuid(uuid, callback); // Fetch the updated user data
+  });
+};
+
+const deleteFriendship = function (uuid, callback) {
+  const selectQuery = 'SELECT * FROM friendship WHERE uuid = ?';
+  const deleteQuery = 'DELETE FROM friendship WHERE uuid = ?';
+
+  // Fetch the user data first
+  db.get(selectQuery, [uuid], (err, friendship) => {
+    if (err) {
+      console.log('Error fetching user: ', err);
+      return callback(err, null);
+    }
+    if (!friendship) {
+      // No user found with the provided UUID
+      return callback(null, null);
+    }
+
+    // Proceed to delete the user
+    db.run(deleteQuery, [uuid], function (err) {
+      if (err) {
+        console.log('Error deleting friendship: ', err);
+        return callback(err, null);
+      }
+      if (this.changes === 0) {
+        // No rows were deleted (unlikely if the user was fetched successfully)
+        return callback(null, null);
+      }
+
+      // Include the deleted user's data in the callback
+      callback(null, { message: `Friendship ${uuid} deleted successfully`, friendship });
+    });
+  });
+};
 
 
 
@@ -634,5 +1009,10 @@ module.exports = {
   getLocationByUser,
   addLocation,
   updateLocation,
-  deleteLocation
+  deleteLocation,
+  getAllFriendships,
+  getFriendshipByUuid,
+  getFriendshipByUserUuid,
+  updateFriendship,
+  deleteFriendship
 };

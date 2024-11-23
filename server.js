@@ -5,6 +5,7 @@ const userRoutes = require('./routes/api/v1/users');
 const channeRoutes = require('./routes/api/v1/channels')
 const messageRoutes = require('./routes/api/v1/messages')
 const locationRoutes = require('./routes/api/v1/locations')
+const friendshipRoutes = require('./routes/api/v1/friendships')
 const authRoutes = require('./routes/api/auth/auth');
 const socketService = require('./services/websocket');
 const jwt = require('jsonwebtoken');
@@ -66,6 +67,7 @@ app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/channels', channeRoutes);
 app.use('/api/v1/messages', messageRoutes);
 app.use('/api/v1/locations', locationRoutes);
+app.use('/api/v1/friendships', friendshipRoutes);
 app.use('/api/auth', authRoutes);
 
 // Use API routes with authentication middleware
