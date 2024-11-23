@@ -74,7 +74,7 @@ const getAllUsers = function (callback) {
 };
 
 const getUserByEmail = function (email, callback) {
-  const query = 'SELECT uuid, fullname, email, username, created_on, modified_on FROM user WHERE email = ?';
+  const query = 'SELECT * FROM user WHERE email = ?';
 
   db.get(query, [email], (err, row) => {
     if (err) {

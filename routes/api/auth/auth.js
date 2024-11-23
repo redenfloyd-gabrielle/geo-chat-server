@@ -80,48 +80,97 @@ router.post('/login', async (req, res) => {
   if (!username || !password) {
     return res.status(400).json({ status: "fail", error: 'Username and password are required' });
   }
+  const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const isValidEmail = regex.test(username);
 
-  // Find the user by username
-  db.getUserByUsername(username, async (err, user) => {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).json({ status: "fail", error: 'Internal server error' });
-    }
-    console.log('@___ user :: ', user)
+  if (isValidEmail) {
 
-    if (!user) {
-      return res.status(404).json({ status: "fail", error: 'User not found' });
-    }
-
-    // Compare passwords
-    const isPasswordMatch = await bcrypt.compare(password, user.password);
-    if (!isPasswordMatch) {
-      return res.status(401).json({ status: "fail", error: 'Invalid username or password' });
-    }
-
-    // Generate JWT
-    const token = jwt.sign(
-      { uuid: user.uuid, username: user.username, email: user.email },
-      SECRET_KEY,
-      { expiresIn: '1hr' }
-    );
-
-    // Login successful
-    return res.status(200).json({
-      status: "success",
-      data: {
-        token,
-        user: {
-          uuid: user.uuid,
-          fullname: user.fullname,
-          username: user.username,
-          email: user.email,
-          created_on: user.created_on,
-          modified_on: user.modified_on
-        }
+    db.getUserByEmail(username, async (err, user) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).json({ status: "fail", error: 'Internal server error' });
       }
+      console.log('@___ user :: ', user)
+
+      if (!user) {
+        return res.status(404).json({ status: "fail", error: 'User not found' });
+      }
+
+      // Compare passwords
+      const isPasswordMatch = await bcrypt.compare(password, user.password);
+      if (!isPasswordMatch) {
+        return res.status(401).json({ status: "fail", error: 'Invalid username or password' });
+      }
+
+      // Generate JWT
+      const token = jwt.sign(
+        { uuid: user.uuid, username: user.username, email: user.email },
+        SECRET_KEY,
+        { expiresIn: '1hr' }
+      );
+
+      // Login successful
+      return res.status(200).json({
+        status: "success",
+        data: {
+          token,
+          user: {
+            uuid: user.uuid,
+            fullname: user.fullname,
+            username: user.username,
+            email: user.email,
+            created_on: user.created_on,
+            modified_on: user.modified_on
+          }
+        }
+      });
     });
-  });
+
+  } else {
+    // Find the user by username
+    db.getUserByUsername(username, async (err, user) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).json({ status: "fail", error: 'Internal server error' });
+      }
+      console.log('@___ user :: ', user)
+
+      if (!user) {
+        return res.status(404).json({ status: "fail", error: 'User not found' });
+      }
+
+      // Compare passwords
+      const isPasswordMatch = await bcrypt.compare(password, user.password);
+      if (!isPasswordMatch) {
+        return res.status(401).json({ status: "fail", error: 'Invalid username or password' });
+      }
+
+      // Generate JWT
+      const token = jwt.sign(
+        { uuid: user.uuid, username: user.username, email: user.email },
+        SECRET_KEY,
+        { expiresIn: '1hr' }
+      );
+
+      // Login successful
+      return res.status(200).json({
+        status: "success",
+        data: {
+          token,
+          user: {
+            uuid: user.uuid,
+            fullname: user.fullname,
+            username: user.username,
+            email: user.email,
+            created_on: user.created_on,
+            modified_on: user.modified_on
+          }
+        }
+      });
+    });
+
+  }
+
 });
 
 // Middleware to validate JWT token
