@@ -549,28 +549,26 @@ const getMessageByChannel = function (uuid, callback) {
 
         // Transform the original rows with the additional user data
         const result = rows.map(row => ({
-          message: {
-            uuid: row.message_uuid,
-            message: row.message,
-            created_on: row.message_created_on,
-            modified_on: row.message_modified_on,
-            channel: {
-              uuid: row.channel_uuid,
-              name: row.channel_name,
-              type: row.channel_type,
-              user_uuids: channelUserUuids,
-              users: userRows, // Add the user details here
-              created_on: row.channel_created_on,
-              modified_on: row.channel_modified_on
-            },
-            user: {
-              uuid: row.user_uuid,
-              fullname: row.user_fullname,
-              email: row.user_email,
-              username: row.user_username,
-              created_on: row.user_created_on,
-              modified_on: row.user_modified_on
-            }
+          uuid: row.message_uuid,
+          message: row.message,
+          created_on: row.message_created_on,
+          modified_on: row.message_modified_on,
+          channel: {
+            uuid: row.channel_uuid,
+            name: row.channel_name,
+            type: row.channel_type,
+            user_uuids: channelUserUuids,
+            users: userRows, // Add the user details here
+            created_on: row.channel_created_on,
+            modified_on: row.channel_modified_on
+          },
+          user: {
+            uuid: row.user_uuid,
+            fullname: row.user_fullname,
+            email: row.user_email,
+            username: row.user_username,
+            created_on: row.user_created_on,
+            modified_on: row.user_modified_on
           }
         }));
 
