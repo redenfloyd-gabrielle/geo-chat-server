@@ -53,7 +53,7 @@ router.post('/', async (req, res) => {
     // User created successfully
     console.log('Channel created with ID:', channel);
     channel.user_uuids = JSON.parse(channel.user_uuids)
-    return res.status(201).json({ status: "success", channel });
+    return res.status(201).json({ status: "success", data: channel });
   });
 });
 
@@ -137,7 +137,7 @@ router.put('/:uuid', (req, res) => {
 router.delete('/:uuid', (req, res) => {
   const { uuid } = req.params;
   console.log('req.params', req.params)
-  db.deleteUser(uuid, (err, result) => {
+  db.deleteChannel(uuid, (err, result) => {
     if (err) {
       return res.status(500).json({ status: "fail", error: err.message });
     }
@@ -148,7 +148,11 @@ router.delete('/:uuid', (req, res) => {
     }
 
     // Return success response
-    return res.json({ status: "success", message: result.message });
+    return res.json({
+      status: "success",
+      message: result.message,
+      data: result.channel // Include the deleted user's data
+    });
   });
 });
 

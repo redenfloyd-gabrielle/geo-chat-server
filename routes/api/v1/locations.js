@@ -132,7 +132,11 @@ router.delete('/:uuid', (req, res) => {
     }
 
     // Return success response
-    return res.json({ status: "success", message: result.message });
+    return res.json({
+      status: "success",
+      message: result.message,
+      data: result.location // Include the deleted user's data
+    });
   });
 });
 

@@ -201,7 +201,7 @@ const deleteUser = function (uuid, callback) {
       return callback(null, null);
     }
 
-    // Proceed to delete the user
+
     db.run(deleteQuery, [uuid], function (err) {
       if (err) {
         console.log('Error deleting user: ', err);
@@ -212,7 +212,7 @@ const deleteUser = function (uuid, callback) {
         return callback(null, null);
       }
 
-      // Include the deleted user's data in the callback
+
       callback(null, { message: `User ${uuid} deleted successfully`, user });
     });
   });
@@ -371,12 +371,11 @@ const deleteChannel = function (uuid, callback) {
       console.log('Error fetching user: ', err);
       return callback(err, null);
     }
+    console.log('@___ channel :: ', channel)
     if (!channel) {
-      // No user found with the provided UUID
       return callback(null, null);
     }
 
-    // Proceed to delete the user
     db.run(deleteQuery, [uuid], function (err) {
       if (err) {
         console.log('Error deleting channel: ', err);
@@ -386,8 +385,6 @@ const deleteChannel = function (uuid, callback) {
         // No rows were deleted (unlikely if the user was fetched successfully)
         return callback(null, null);
       }
-
-      // Include the deleted user's data in the callback
       callback(null, { message: `Channel ${uuid} deleted successfully`, channel });
     });
   });
@@ -487,7 +484,7 @@ const deleteMessage = function (uuid, callback) {
       return callback(null, null);
     }
 
-    // Proceed to delete the user
+
     db.run(deleteQuery, [uuid], function (err) {
       if (err) {
         console.log('Error deleting message: ', err);
@@ -498,8 +495,8 @@ const deleteMessage = function (uuid, callback) {
         return callback(null, null);
       }
 
-      // Include the deleted user's data in the callback
-      callback(null, { message: `Message ${uuid} deleted successfully`, message });
+
+      callback(null, { message: `Message ${uuid} deleted successfully`, data: message });
     });
   });
 };
@@ -695,7 +692,7 @@ const deleteLocation = function (uuid, callback) {
       return callback(null, null);
     }
 
-    // Proceed to delete the user
+
     db.run(deleteQuery, [uuid], function (err) {
       if (err) {
         console.log('Error deleting location: ', err);
@@ -706,7 +703,7 @@ const deleteLocation = function (uuid, callback) {
         return callback(null, null);
       }
 
-      // Include the deleted user's data in the callback
+
       callback(null, { message: `Location ${uuid} deleted successfully`, location });
     });
   });
@@ -965,7 +962,7 @@ const deleteFriendship = function (uuid, callback) {
       return callback(null, null);
     }
 
-    // Proceed to delete the user
+
     db.run(deleteQuery, [uuid], function (err) {
       if (err) {
         console.log('Error deleting friendship: ', err);
@@ -976,7 +973,7 @@ const deleteFriendship = function (uuid, callback) {
         return callback(null, null);
       }
 
-      // Include the deleted user's data in the callback
+
       callback(null, { message: `Friendship ${uuid} deleted successfully`, friendship });
     });
   });

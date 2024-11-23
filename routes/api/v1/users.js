@@ -76,7 +76,6 @@ router.delete('/:uuid', (req, res) => {
     if (!result) {
       return res.status(404).json({ status: "fail", error: 'User not found' });
     }
-    result.user.pop('password')
     return res.json({
       status: "success",
       message: result.message,
