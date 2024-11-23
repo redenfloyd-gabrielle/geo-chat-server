@@ -68,13 +68,13 @@ const createTables = function () {
 }
 
 const getAllUsers = function (callback) {
-  db.all('SELECT * FROM user', [], (err, rows) => {
+  db.all('SELECT uuid, fullname, email, username, created_on, modified_on FROM user', [], (err, rows) => {
     callback(err, rows);
   });
 };
 
 const getUserByEmail = function (email, callback) {
-  const query = 'SELECT * FROM user WHERE email = ?';
+  const query = 'SELECT uuid, fullname, email, username, created_on, modified_on FROM user WHERE email = ?';
 
   db.get(query, [email], (err, row) => {
     if (err) {
@@ -87,7 +87,7 @@ const getUserByEmail = function (email, callback) {
 };
 
 const getUserByUsername = function (username, callback) {
-  const query = 'SELECT * FROM user WHERE username = ?';
+  const query = 'SELECT uuid, fullname, email, username, created_on, modified_on FROM user WHERE username = ?';
 
   db.get(query, [username], (err, row) => {
     if (err) {
@@ -100,7 +100,7 @@ const getUserByUsername = function (username, callback) {
 };
 
 const getUserByUUID = function (uuid, callback) {
-  const query = 'SELECT * FROM user WHERE uuid = ?';
+  const query = 'SELECT uuid, fullname, email, username, created_on, modified_on FROM user WHERE uuid = ?';
   db.get(query, [uuid], (err, row) => {
     if (err) {
       return callback(err);
@@ -185,22 +185,34 @@ const updateUser = function (uuid, userPayload, callback) {
 };
 
 const deleteUser = function (uuid, callback) {
-  const query = 'DELETE FROM user WHERE uuid = ?';
+  const selectQuery = 'SELECT uuid, fullname, email, username, created_on, modified_on FROM user WHERE uuid = ?';
+  const deleteQuery = 'DELETE FROM user WHERE uuid = ?';
 
-  db.run(query, [uuid], function (err) {
+  // Fetch the user data first
+  db.get(selectQuery, [uuid], (err, user) => {
     if (err) {
-      // Handle error appropriately
-      console.log('err :: ', err);
+      console.log('Error fetching user: ', err);
       return callback(err, null);
     }
-    // Check if any rows were deleted
-    if (this.changes === 0) {
-      // No user was found with the provided UUID
-      return callback(null, null); // Or callback(null, { message: 'User not found' });
+    if (!user) {
+      // No user found with the provided UUID
+      return callback(null, null);
     }
 
-    // Pass a success message or the UUID of the deleted user to the callback
-    callback(null, { message: `User ${uuid} deleted successfully`, uuid });
+    // Proceed to delete the user
+    db.run(deleteQuery, [uuid], function (err) {
+      if (err) {
+        console.log('Error deleting user: ', err);
+        return callback(err, null);
+      }
+      if (this.changes === 0) {
+        // No rows were deleted (unlikely if the user was fetched successfully)
+        return callback(null, null);
+      }
+
+      // Include the deleted user's data in the callback
+      callback(null, { message: `User ${uuid} deleted successfully`, user });
+    });
   });
 };
 
@@ -313,22 +325,34 @@ const updateChannel = function (uuid, channelPayload, callback) {
 };
 
 const deleteChannel = function (uuid, callback) {
-  const query = 'DELETE FROM channel WHERE uuid = ?';
+  const selectQuery = 'SELECT * FROM channel WHERE uuid = ?';
+  const deleteQuery = 'DELETE FROM channel WHERE uuid = ?';
 
-  db.run(query, [uuid], function (err) {
+  // Fetch the user data first
+  db.get(selectQuery, [uuid], (err, channel) => {
     if (err) {
-      // Handle error appropriately
-      console.log('err :: ', err);
+      console.log('Error fetching user: ', err);
       return callback(err, null);
     }
-    // Check if any rows were deleted
-    if (this.changes === 0) {
-      // No user was found with the provided UUID
-      return callback(null, null); // Or callback(null, { message: 'User not found' });
+    if (!channel) {
+      // No user found with the provided UUID
+      return callback(null, null);
     }
 
-    // Pass a success message or the UUID of the deleted user to the callback
-    callback(null, { message: `Channel ${uuid} deleted successfully`, uuid });
+    // Proceed to delete the user
+    db.run(deleteQuery, [uuid], function (err) {
+      if (err) {
+        console.log('Error deleting channel: ', err);
+        return callback(err, null);
+      }
+      if (this.changes === 0) {
+        // No rows were deleted (unlikely if the user was fetched successfully)
+        return callback(null, null);
+      }
+
+      // Include the deleted user's data in the callback
+      callback(null, { message: `Channel ${uuid} deleted successfully`, channel });
+    });
   });
 };
 
@@ -412,22 +436,34 @@ const updateMessage = function (uuid, messagePayload, callback) {
 };
 
 const deleteMessage = function (uuid, callback) {
-  const query = 'DELETE FROM message WHERE uuid = ?';
+  const selectQuery = 'SELECT * FROM message WHERE uuid = ?';
+  const deleteQuery = 'DELETE FROM message WHERE uuid = ?';
 
-  db.run(query, [uuid], function (err) {
+  // Fetch the user data first
+  db.get(selectQuery, [uuid], (err, message) => {
     if (err) {
-      // Handle error appropriately
-      console.log('err :: ', err);
+      console.log('Error fetching user: ', err);
       return callback(err, null);
     }
-    // Check if any rows were deleted
-    if (this.changes === 0) {
-      // No user was found with the provided UUID
-      return callback(null, null); // Or callback(null, { message: 'User not found' });
+    if (!message) {
+      // No user found with the provided UUID
+      return callback(null, null);
     }
 
-    // Pass a success message or the UUID of the deleted user to the callback
-    callback(null, { message: `Message ${uuid} deleted successfully`, uuid });
+    // Proceed to delete the user
+    db.run(deleteQuery, [uuid], function (err) {
+      if (err) {
+        console.log('Error deleting message: ', err);
+        return callback(err, null);
+      }
+      if (this.changes === 0) {
+        // No rows were deleted (unlikely if the user was fetched successfully)
+        return callback(null, null);
+      }
+
+      // Include the deleted user's data in the callback
+      callback(null, { message: `Message ${uuid} deleted successfully`, message });
+    });
   });
 };
 
@@ -538,22 +574,34 @@ const updateLocation = function (uuid, locationPayload, callback) {
 };
 
 const deleteLocation = function (uuid, callback) {
-  const query = 'DELETE FROM location WHERE uuid = ?';
+  const selectQuery = 'SELECT * FROM location WHERE uuid = ?';
+  const deleteQuery = 'DELETE FROM location WHERE uuid = ?';
 
-  db.run(query, [uuid], function (err) {
+  // Fetch the user data first
+  db.get(selectQuery, [uuid], (err, location) => {
     if (err) {
-      // Handle error appropriately
-      console.log('err :: ', err);
+      console.log('Error fetching user: ', err);
       return callback(err, null);
     }
-    // Check if any rows were deleted
-    if (this.changes === 0) {
-      // No user was found with the provided UUID
-      return callback(null, null); // Or callback(null, { message: 'User not found' });
+    if (!location) {
+      // No user found with the provided UUID
+      return callback(null, null);
     }
 
-    // Pass a success message or the UUID of the deleted user to the callback
-    callback(null, { message: `Location ${uuid} deleted successfully`, uuid });
+    // Proceed to delete the user
+    db.run(deleteQuery, [uuid], function (err) {
+      if (err) {
+        console.log('Error deleting location: ', err);
+        return callback(err, null);
+      }
+      if (this.changes === 0) {
+        // No rows were deleted (unlikely if the user was fetched successfully)
+        return callback(null, null);
+      }
+
+      // Include the deleted user's data in the callback
+      callback(null, { message: `Location ${uuid} deleted successfully`, location });
+    });
   });
 };
 

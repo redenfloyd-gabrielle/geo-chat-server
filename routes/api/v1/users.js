@@ -68,19 +68,20 @@ router.put('/:uuid', (req, res) => {
 
 router.delete('/:uuid', (req, res) => {
   const { uuid } = req.params;
-  console.log('req.params', req.params)
+
   db.deleteUser(uuid, (err, result) => {
     if (err) {
       return res.status(500).json({ status: "fail", error: err.message });
     }
-
-    // If result is null, it means user not found
     if (!result) {
       return res.status(404).json({ status: "fail", error: 'User not found' });
     }
-
-    // Return success response
-    return res.json({ status: "success", message: result.message });
+    result.user.pop('password')
+    return res.json({
+      status: "success",
+      message: result.message,
+      data: result.user // Include the deleted user's data
+    });
   });
 });
 
