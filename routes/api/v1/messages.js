@@ -36,7 +36,7 @@ router.post('/', async (req, res) => {
 
     // User created successfully
     console.log('Message created with ID:', message.uuid);
-    return res.status(201).json({ status: "success", message });
+    return res.status(201).json({ status: "success", data: message });
   });
 });
 
@@ -82,38 +82,37 @@ router.get('/channel_uuid/:uuid', (req, res) => {
 
 router.put('/:uuid', (req, res) => {
   const { uuid } = req.params;
-  const { fullname, username, email } = req.body; // Assuming these fields can be updated
+  const { message } = req.body; // Assuming these fields can be updated
 
   console.log('req.params', req.params);
 
   // Validate request body
-  if (!fullname && !username && !email) {
+  if (!message) {
     return res.status(400).json({ status: "fail", error: 'At least one field must be provided for update' });
   }
   const modifiedOn = dayjs().unix();
   // Prepare the update data
   const payload = {};
-  if (fullname) payload.fullname = fullname;
-  if (username) payload.username = username;
-  if (email) payload.email = email;
+  if (message) payload.message = message;
+
 
 
   payload.modified_on = modifiedOn
   console.log('payload', payload);
 
   // Call the database update function
-  db.updateUser(uuid, payload, (err, user) => {
+  db.updateMessage(uuid, payload, (err, message) => {
     if (err) {
       return res.status(500).json({ status: "fail", error: err.message });
     }
 
-    console.log('user::', user);
-    if (!user) {
+    // console.log('message::', message);
+    if (!message) {
       return res.status(404).json({ status: "fail", error: 'User not found' });
     }
 
-    // Respond with the updated user data
-    res.json({ status: "success", data: user });
+    // Respond with the updated message data
+    res.json({ status: "success", data: message });
   });
 });
 

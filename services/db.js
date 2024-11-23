@@ -397,19 +397,94 @@ const getAllMessages = function (callback) {
 };
 
 const getMessageByUuid = function (uuid, callback) {
-  const query = 'SELECT * FROM message WHERE uuid = ?';
+  const query = `
+    SELECT
+        m.uuid AS message_uuid,
+        m.message,
+        m.created_on AS message_created_on,
+        m.modified_on AS message_modified_on,
+        c.uuid AS channel_uuid,
+        c.name AS channel_name,
+        c.type AS channel_type,
+        c.user_uuids AS channel_user_uuids,
+        c.created_on AS channel_created_on,
+        c.modified_on AS channel_modified_on,
+        u.uuid AS user_uuid,
+        u.fullname AS user_fullname,
+        u.email AS user_email,
+        u.username AS user_username,
+        u.created_on AS user_created_on,
+        u.modified_on AS user_modified_on
+    FROM message m
+    JOIN channel c ON m.channel_uuid = c.uuid
+    JOIN "user" u ON m.user_uuid = u.uuid
+    WHERE m.uuid = ?
+    ORDER BY m.created_on;
+  `;
+  // const query = 'SELECT * FROM message WHERE uuid = ?';
   db.get(query, [uuid], (err, row) => {
     if (err) {
       return callback(err);
     }
 
-    callback(null, row);
+    // Reshape the result
+    const transformedResult = {
+      uuid: row.message_uuid,
+      channel_uuid: row.channel_uuid,
+      channel: {
+        uuid: row.channel_uuid,
+        name: row.channel_name,
+        type: row.channel_type,
+        user_uuids: JSON.parse(row.channel_user_uuids),
+        created_on: row.channel_created_on,
+        modified_on: row.channel_modified_on,
+      },
+      user_uuid: row.user_uuid,
+      user: {
+        uuid: row.user_uuid,
+        fullname: row.user_fullname,
+        email: row.user_email,
+        username: row.user_username,
+        created_on: row.user_created_on,
+        modified_on: row.user_modified_on,
+      },
+      message: row.message,
+      created_on: row.message_created_on,
+      modified_on: row.message_modified_on,
+    };
+
+    callback(null, transformedResult);
   });
 };
 
-const addMessage = function (messagePayload, callback) {
+// const addMessage = function (messagePayload, callback) {
 
-  const query = 'INSERT INTO message (uuid, channel_uuid, user_uuid, message, created_on, modified_on) VALUES (?, ?, ?, ?, ?, ?)';
+//   const query = 'INSERT INTO message (uuid, channel_uuid, user_uuid, message, created_on, modified_on) VALUES (?, ?, ?, ?, ?, ?)';
+//   console.log('userPayload :: ', messagePayload);
+
+//   const params = [
+//     messagePayload.uuid,
+//     messagePayload.channel_uuid,
+//     messagePayload.user_uuid,
+//     messagePayload.message,
+//     messagePayload.created_on,
+//     messagePayload.modified_on
+//   ];
+
+//   db.run(query, params, function (err) {
+//     if (err) {
+//       // Handle error appropriately
+//       console.log('err :: ', err);
+//       return callback(err, null);
+//     }
+//     // Pass the ID of the newly created user to the callback
+//     callback(null, messagePayload);
+//   });
+// };
+
+const addMessage = function (messagePayload, callback) {
+  const query =
+    'INSERT INTO message (uuid, channel_uuid, user_uuid, message, created_on, modified_on) VALUES (?, ?, ?, ?, ?, ?)';
   console.log('userPayload :: ', messagePayload);
 
   const params = [
@@ -418,7 +493,7 @@ const addMessage = function (messagePayload, callback) {
     messagePayload.user_uuid,
     messagePayload.message,
     messagePayload.created_on,
-    messagePayload.modified_on
+    messagePayload.modified_on,
   ];
 
   db.run(query, params, function (err) {
@@ -427,8 +502,17 @@ const addMessage = function (messagePayload, callback) {
       console.log('err :: ', err);
       return callback(err, null);
     }
-    // Pass the ID of the newly created user to the callback
-    callback(null, messagePayload);
+
+    // Call getMessageByUuid after a successful insert
+    getMessageByUuid(messagePayload.uuid, (err, messageDetails) => {
+      if (err) {
+        console.log('Error fetching message details :: ', err);
+        return callback(err, null);
+      }
+
+      // Pass the detailed message information to the callback
+      callback(null, messageDetails);
+    });
   });
 };
 
@@ -447,27 +531,31 @@ const updateMessage = function (uuid, messagePayload, callback) {
     params.push(modified_on);
   }
 
+  console.log('@___ updates', updates)
+  console.log('@___ params', params)
+
   if (updates.length === 0) {
-    return callback(null, null); // No updates to make
+    return callback(null, { error: 'No fields to update' });
   }
 
   const query = `UPDATE message SET ${updates.join(', ')} WHERE uuid = ?`;
-  params.push(uuid); // Add uuid to the parameters
+  params.push(uuid);
 
   db.run(query, params, function (err) {
     if (err) {
       return callback(err);
     }
 
-    // Check if any row was updated
+    console.log('@___ this.changes', this.changes); // Debug: number of rows affected
     if (this.changes === 0) {
-      return callback(null, null); // No user found with that UUID
+      return callback(null, { error: 'No message found with the given UUID' });
     }
 
-    // Fetch the updated user to return
-    getMessageByUuid(uuid, callback); // Fetch the updated user data
+    // Fetch and return the updated message
+    getMessageByUuid(uuid, callback);
   });
 };
+
 
 const deleteMessage = function (uuid, callback) {
   const selectQuery = 'SELECT * FROM message WHERE uuid = ?';
