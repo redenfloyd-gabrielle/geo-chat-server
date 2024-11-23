@@ -196,12 +196,29 @@ function validateToken(req, res, next) {
   });
 }
 
+// Renew token endpoint
+router.post('/renew_token', validateToken, (req, res) => {
+  // Generate a new token with a fresh expiration
+  const newToken = jwt.sign(
+    { uuid: req.user.uuid, username: req.user.username, email: req.user.email },
+    SECRET_KEY,
+    { expiresIn: '1hr' } // 1 hour expiration for the new token
+  );
+
+  return res.status(200).json({
+    status: "success",
+    data: {
+      token: newToken,
+    }
+  });
+});
+
 // Endpoint to check if the token is valid
-router.get('/validate-token', validateToken, (req, res) => {
+router.get('/validate_token', validateToken, (req, res) => {
   return res.status(200).json({
     status: "success",
     message: "Token is valid",
-    user: req.user // Send decoded user info back
+    data: req.user // Send decoded user info back
   });
 });
 

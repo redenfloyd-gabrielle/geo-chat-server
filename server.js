@@ -20,7 +20,7 @@ const app = express();
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow specific methods
-  allowedHeaders: ['Content-Type'], // Allow specific headers
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
   credentials: true // Allow credentials such as cookies
 }));
 
@@ -62,19 +62,21 @@ const io = socketIo(server, {
 // Use JSON middleware
 app.use(express.json());
 
-// // Use API routes
-app.use('/api/v1/users', userRoutes);
-app.use('/api/v1/channels', channeRoutes);
-app.use('/api/v1/messages', messageRoutes);
-app.use('/api/v1/locations', locationRoutes);
-app.use('/api/v1/friendships', friendshipRoutes);
-app.use('/api/auth', authRoutes);
+// Use API routes
+// app.use('/api/v1/users', userRoutes);
+// app.use('/api/v1/channels', channeRoutes);
+// app.use('/api/v1/messages', messageRoutes);
+// app.use('/api/v1/locations', locationRoutes);
+// app.use('/api/v1/friendships', friendshipRoutes);
+// app.use('/api/auth', authRoutes);
 
 // Use API routes with authentication middleware
-// app.use('/api/v1/users', authenticateToken, userRoutes);
-// app.use('/api/v1/channels', authenticateToken, channeRoutes);
-// app.use('/api/v1/messages', authenticateToken, messageRoutes);
-// app.use('/api/auth', authRoutes);
+app.use('/api/v1/users', authenticateToken, userRoutes);
+app.use('/api/v1/channels', authenticateToken, channeRoutes);
+app.use('/api/v1/messages', authenticateToken, messageRoutes);
+app.use('/api/v1/locations', authenticateToken, locationRoutes);
+app.use('/api/v1/friendships', authenticateToken, friendshipRoutes);
+app.use('/api/auth', authRoutes);
 
 // Endpoint to return all available routes
 app.get('/api/routes', (req, res) => {
