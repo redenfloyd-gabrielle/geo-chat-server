@@ -795,6 +795,31 @@ const deleteLocation = function (uuid, callback) {
   });
 };
 
+const addFriendship = function (friendshipPayload, callback) {
+
+  const query = 'INSERT INTO friendship (uuid, user1_uuid, user2_uuid, status, created_on, modified_on) VALUES (?, ?, ?, ?, ?, ?)';
+  console.log('userPayload :: ', friendshipPayload);
+
+  const params = [
+    friendshipPayload.uuid,
+    friendshipPayload.user1_uuid,
+    friendshipPayload.user2_uuid,
+    friendshipPayload.status,
+    friendshipPayload.created_on,
+    friendshipPayload.modified_on
+  ];
+
+  db.run(query, params, function (err) {
+    if (err) {
+      // Handle error appropriately
+      console.log('err :: ', err);
+      return callback(err, null);
+    }
+    // Pass the ID of the newly created user to the callback
+    callback(null, friendshipPayload);
+  });
+};
+
 const getAllFriendships = function (callback) {
   const query = `
     SELECT
@@ -1093,6 +1118,7 @@ module.exports = {
   addLocation,
   updateLocation,
   deleteLocation,
+  addFriendship,
   getAllFriendships,
   getFriendshipByUuid,
   getFriendshipByUserUuid,

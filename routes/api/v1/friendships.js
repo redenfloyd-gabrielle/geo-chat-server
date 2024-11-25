@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../../../services/db');
 const dayjs = require('dayjs');
+const { v4: uuidv4 } = require('uuid');
 // Get all users
 router.get('/', (req, res) => {
   db.getAllFriendships((err, rows) => {
@@ -10,6 +11,41 @@ router.get('/', (req, res) => {
     }
 
     res.json({ status: "success", data: rows, count: rows.length });
+  });
+});
+
+router.post('/', async (req, res) => {
+  const { user1_uuid, user2_uuid } = req.body;
+
+  // Validation
+  if (!user1_uuid || !user2_uuid) {
+    return res.status(400).json({ status: "fail", error: 'All fields are required' });
+  }
+  // Generate UUID for the user
+  const uuid = uuidv4();
+
+  // Create timestamp using Day.js
+  const createdOn = dayjs().unix();
+
+
+  payload = {
+    uuid,
+    user1_uuid,
+    user2_uuid,
+    status: 'Accepted',
+    created_on: createdOn,
+    modified_on: createdOn
+  }
+
+  db.addFriendship(payload, (err, friendship) => {
+    if (err) {
+      console.error('Error adding addFriendship:', err);
+      return res.status(500).json({ status: "fail", error: `Failed to create addFriendship :: ${err.message}` });
+    }
+
+    // User created successfully
+    console.log('addFriendship created with ID:', friendship);
+    return res.status(201).json({ status: "success", data: friendship });
   });
 });
 
