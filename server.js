@@ -63,20 +63,20 @@ const io = socketIo(server, {
 app.use(express.json());
 
 // Use API routes
-// app.use('/api/v1/users', userRoutes);
-// app.use('/api/v1/channels', channeRoutes);
-// app.use('/api/v1/messages', messageRoutes);
-// app.use('/api/v1/locations', locationRoutes);
-// app.use('/api/v1/friendships', friendshipRoutes);
-// app.use('/api/auth', authRoutes);
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/channels', channeRoutes);
+app.use('/api/v1/messages', messageRoutes);
+app.use('/api/v1/locations', locationRoutes);
+app.use('/api/v1/friendships', friendshipRoutes);
+app.use('/api/auth', authRoutes);
 
 // Use API routes with authentication middleware
-app.use('/api/v1/users', authenticateToken, userRoutes);
-app.use('/api/v1/channels', authenticateToken, channeRoutes);
-app.use('/api/v1/messages', authenticateToken, messageRoutes);
-app.use('/api/v1/locations', authenticateToken, locationRoutes);
-app.use('/api/v1/friendships', authenticateToken, friendshipRoutes);
-app.use('/api/auth', authRoutes);
+// app.use('/api/v1/users', authenticateToken, userRoutes);
+// app.use('/api/v1/channels', authenticateToken, channeRoutes);
+// app.use('/api/v1/messages', authenticateToken, messageRoutes);
+// app.use('/api/v1/locations', authenticateToken, locationRoutes);
+// app.use('/api/v1/friendships', authenticateToken, friendshipRoutes);
+// app.use('/api/auth', authRoutes);
 
 // Endpoint to return all available routes
 app.get('/api/routes', (req, res) => {
@@ -138,6 +138,9 @@ app.use(express.static(__dirname));
 
 // Start the server
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// server.listen(PORT, () => {
+//   console.log(`Server running on port ${PORT}`);
+// });
+app.listen(PORT, '0.0.0.0', () => {
+  console.log('Server running on 0.0.0.0:3000');
 });

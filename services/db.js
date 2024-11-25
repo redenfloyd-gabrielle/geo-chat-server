@@ -47,8 +47,8 @@ const createTables = function () {
         uuid TEXT PRIMARY KEY,
         channel_uuid TEXT NOT NULL,
         user_uuid TEXT NOT NULL,
-        latitude TEXT NOT NULL,
-        longitude TEXT NOT NULL,
+        latitude INTEGER NOT NULL,
+        longitude INTEGER NOT NULL,
         weather TEXT,
         created_on INTEGER NOT NULL,
         modified_on INTEGER NOT NULL,
@@ -695,17 +695,28 @@ const getLocationByUser = function (userUuid, callback) {
   });
 };
 
+const getLocationByChannel = function (channelUuid, callback) {
+  const query = 'SELECT * FROM location WHERE channel_uuid = ?';
+  db.all(query, [channelUuid], (err, row) => {
+    if (err) {
+      return callback(err);
+    }
+    callback(null, row || []);
+  }); 
+};
+
 const addLocation = function (locationPayload, callback) {
 
-  const query = 'INSERT INTO location (uuid, channel_uuid, user_uuid, latitude, longitude, created_on, modified_on) VALUES (?, ?, ?, ?, ?, ?, ?)';
+  const query = 'INSERT INTO location (uuid, channel_uuid, user_uuid, latitude, longitude, weather, created_on, modified_on) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
   console.log('userPayload :: ', locationPayload);
-
+  
   const params = [
     locationPayload.uuid,
     locationPayload.channel_uuid,
     locationPayload.user_uuid,
     locationPayload.latitude,
     locationPayload.longitude,
+    locationPayload.weather,
     locationPayload.created_on,
     locationPayload.modified_on
   ];
@@ -722,10 +733,14 @@ const addLocation = function (locationPayload, callback) {
 };
 
 const updateLocation = function (uuid, locationPayload, callback) {
-  const { latitude, longitude, modified_on } = locationPayload;
+  const { user_uuid, latitude, longitude, weather, modified_on } = locationPayload;
   const updates = [];
   const params = [];
 
+  if (user_uuid) {
+    updates.push('user_uuid = ?');
+    params.push(user_uuid);
+  }
   if (latitude) {
     updates.push('latitude = ?');
     params.push(latitude);
@@ -735,6 +750,12 @@ const updateLocation = function (uuid, locationPayload, callback) {
     updates.push('longitude = ?');
     params.push(longitude);
   }
+
+  if (weather) {
+    updates.push('weather = ?');
+    params.push(weather);
+  }
+
 
   if (modified_on) {
     updates.push('modified_on = ?');
@@ -1115,6 +1136,7 @@ module.exports = {
   getAllLocations,
   getLocationByUuid,
   getLocationByUser,
+  getLocationByChannel,
   addLocation,
   updateLocation,
   deleteLocation,
