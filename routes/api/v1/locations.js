@@ -7,10 +7,10 @@ const dayjs = require('dayjs');
 
 router.post('/', async (req, res) => {
 
-  const { message, channel_uuid, user_uuid } = req.body;
+  const {channel_uuid, user_uuid,latitude, longitude, weather } = req.body;
 
   // Validation
-  if (!message || !channel_uuid || !user_uuid) {
+  if (!channel_uuid || !user_uuid) {
     return res.status(400).json({ status: "fail", error: 'All fields are required' });
   }
   // Generate UUID for the user
@@ -22,9 +22,11 @@ router.post('/', async (req, res) => {
 
   payload = {
     uuid,
-    message,
     channel_uuid,
     user_uuid,
+    latitude,
+    longitude,
+    weather,
     created_on: createdOn,
     modified_on: createdOn
   }
@@ -37,7 +39,7 @@ router.post('/', async (req, res) => {
 
     // User created successfully
     console.log('Message created with ID:', message.uuid);
-    return res.status(201).json({ status: "success", message });
+    return res.status(201).json({ status: "success", data: message });
   });
 });
 
@@ -80,23 +82,37 @@ router.get('/user_uuid/:uuid', (req, res) => {
   });
 });
 
+router.get('/channel_uuid/:uuid', (req, res) => {
+  const { uuid } = req.params;
+  console.log('req.params', req.params)
+  db.getLocationByChannel(uuid, (err, messages) => {
+    if (err) {
+      return res.status(500).json({ status: "fail", error: err.message });
+    }
+    console.log('channels::', messages)
+
+    res.json({ status: "success", data: messages });
+  });
+});
+
 
 router.put('/:uuid', (req, res) => {
   const { uuid } = req.params;
-  const { fullname, username, email } = req.body; // Assuming these fields can be updated
+  const { user_uuid, latitude, longitude, weather } = req.body; // Assuming these fields can be updated
 
   console.log('req.params', req.params);
 
   // Validate request body
-  if (!fullname && !username && !email) {
+  if (!user_uuid && !latitude && !longitude && weather) {
     return res.status(400).json({ status: "fail", error: 'At least one field must be provided for update' });
   }
   const modifiedOn = dayjs().unix();
   // Prepare the update data
   const payload = {};
-  if (fullname) payload.fullname = fullname;
-  if (username) payload.username = username;
-  if (email) payload.email = email;
+  if (user_uuid) payload.user_uuid = user_uuid;
+  if (latitude) payload.latitude = latitude;
+  if (longitude) payload.longitude = longitude;
+  if (weather) payload.weather = weather;
 
 
   payload.modified_on = modifiedOn
