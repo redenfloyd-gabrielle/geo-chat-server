@@ -1,44 +1,58 @@
 const express = require('express');
 const router = express.Router();
+const upload = require('../../../services/multer');
 const db = require('../../../services/db');
 const { v4: uuidv4 } = require('uuid');
 const dayjs = require('dayjs');
 
-router.post('/', async (req, res) => {
-
+router.post('/', upload.single('file'), async (req, res) => {
   const { message, channel_uuid, user_uuid } = req.body;
 
   // Validation
   if (!message || !channel_uuid || !user_uuid) {
     return res.status(400).json({ status: "fail", error: 'All fields are required' });
   }
-  // Generate UUID for the user
+
+  // Generate UUID for the message
   const uuid = uuidv4();
 
   // Create timestamp using Day.js
   const createdOn = dayjs().unix();
 
+  // File data (if file is uploaded)
+  let fileData = null;
+  if (req.file) {
+    fileData = {
+      file_name: req.file.filename,          // Generated file name
+      file_path: `/uploads/${req.file.filename}`, // File path
+      file_mimetype: req.file.mimetype       // File MIME type
+    };
+  }
 
-  payload = {
+  // Payload with message and file (if any)
+  const payload = {
     uuid,
     message,
     channel_uuid,
     user_uuid,
     created_on: createdOn,
-    modified_on: createdOn
-  }
+    modified_on: createdOn,
+    file: fileData // Include file data if uploaded
+  };
 
+  // Save the message with file data
   db.addMessage(payload, (err, message) => {
     if (err) {
-      console.error('Error adding user:', err);
+      console.error('Error adding message:', err);
       return res.status(500).json({ status: "fail", error: `Failed to create message :: ${err.message}` });
     }
 
-    // User created successfully
+    // Successfully created message
     console.log('Message created with ID:', message.uuid);
     return res.status(201).json({ status: "success", data: message });
   });
 });
+
 
 router.get('/', (req, res) => {
   db.getAllMessages((err, rows) => {

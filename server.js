@@ -1,12 +1,13 @@
 const express = require('express');
 const http = require('http');
+const path = require('path');
 const socketIo = require('socket.io');
 const userRoutes = require('./routes/api/v1/users');
 const channeRoutes = require('./routes/api/v1/channels')
 const messageRoutes = require('./routes/api/v1/messages')
 const locationRoutes = require('./routes/api/v1/locations')
 const friendshipRoutes = require('./routes/api/v1/friendships')
-const authRoutes = require('./routes/api/auth/auth');
+const authRoutes = require('./routes/api/auth');
 const socketService = require('./services/websocket');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
@@ -46,30 +47,17 @@ function authenticateToken(req, res, next) {
   });
 }
 
-
-// Create an HTTP server
-const server = http.createServer(app);
-
-// Initialize Socket.IO
-const io = socketIo(server, {
-  cors: {
-    origin: '*', // Allow your Vue app
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true
-  }
-});
-
 // Use JSON middleware
 app.use(express.json());
 
 // Use API routes
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/channels', channeRoutes);
 app.use('/api/v1/messages', messageRoutes);
 app.use('/api/v1/locations', locationRoutes);
 app.use('/api/v1/friendships', friendshipRoutes);
-app.use('/api/auth', authRoutes);
-
 // Use API routes with authentication middleware
 // app.use('/api/v1/users', authenticateToken, userRoutes);
 // app.use('/api/v1/channels', authenticateToken, channeRoutes);
@@ -129,19 +117,26 @@ app.all('*', (req, res) => {
   return res.status(404).json({ status: "fail", error: "Endpoint does not exist" });
 });
 
+// Serve static files (optional for front-end)
+app.use(express.static(__dirname));
+
+// Create an HTTP server
+const server = http.createServer(app);
+
+// Initialize Socket.IO
+const io = socketIo(server, {
+  cors: {
+    origin: '*', // Allow your Vue app
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+  }
+});
+
 // Initialize Socket.IO service
 socketService(io);
 
-// Serve static files (optional for front-end)
-app.use(express.static(__dirname));
-// app.use(express.static('public'));
-
-
 // Start the server
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on http://0.0.0.0:${PORT}`);
 });
-// app.listen(PORT, '0.0.0.0', () => {
-//   console.log('Server running on 0.0.0.0:3000');
-// });
