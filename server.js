@@ -134,13 +134,14 @@ socketService(io);
 
 // Serve static files (optional for front-end)
 app.use(express.static(__dirname));
+// app.use(express.static('public'));
 
 
 // Start the server
 const PORT = process.env.PORT || 3000;
-// server.listen(PORT, () => {
-//   console.log(`Server running on port ${PORT}`);
-// });
-app.listen(PORT, '0.0.0.0', () => {
-  console.log('Server running on 0.0.0.0:3000');
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
+// app.listen(PORT, '0.0.0.0', () => {
+//   console.log('Server running on 0.0.0.0:3000');
+// });
