@@ -138,13 +138,8 @@ socketService(io);
 
 // Start the server
 const PORT = process.env.PORT || 3000;
-<<<<<<< HEAD
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-=======
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on http://0.0.0.0:${PORT}`);
->>>>>>> 0a4b278fc06dc23476288bf667e03d0802a65f6d
 });
 // app.listen(PORT, '0.0.0.0', () => {
 //   console.log('Server running on 0.0.0.0:3000');
