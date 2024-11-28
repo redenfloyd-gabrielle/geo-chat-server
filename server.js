@@ -2,12 +2,13 @@ const express = require('express');
 const http = require('http');
 const path = require('path');
 const socketIo = require('socket.io');
+const authRoutes = require('./routes/api/auth');
 const userRoutes = require('./routes/api/v1/users');
 const channeRoutes = require('./routes/api/v1/channels')
 const messageRoutes = require('./routes/api/v1/messages')
 const locationRoutes = require('./routes/api/v1/locations')
 const friendshipRoutes = require('./routes/api/v1/friendships')
-const authRoutes = require('./routes/api/auth');
+const filesRoutes = require('./routes/api/v1/file')
 const socketService = require('./services/websocket');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
@@ -58,6 +59,7 @@ app.use('/api/v1/channels', channeRoutes);
 app.use('/api/v1/messages', messageRoutes);
 app.use('/api/v1/locations', locationRoutes);
 app.use('/api/v1/friendships', friendshipRoutes);
+app.use('/api/v1/files', filesRoutes);
 // Use API routes with authentication middleware
 // app.use('/api/v1/users', authenticateToken, userRoutes);
 // app.use('/api/v1/channels', authenticateToken, channeRoutes);
@@ -108,6 +110,7 @@ function cleanPath(path) {
     .replace(/\/\?(\(\?=.*\)|\(\?=\/)/g, '') // Remove optional regex patterns
     .replace(/\/:([^/]+)/g, '/$1') // Convert :param to /param
     .replace(/\/uuid/g, '/<uuid>') // Replace /uuid with /<uuid>
+    .replace(/\/filename/g, '/<filename>') // Replace /uuid with /<uuid>
     .replace(/\/{2,}/g, '/') // Remove any duplicate slashes
     .replace(/\/$/, ''); // Remove trailing slashes
 }

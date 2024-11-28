@@ -39,9 +39,6 @@ const createTables = function () {
         message TEXT NOT NULL,
         created_on INTEGER NOT NULL,
         modified_on INTEGER NOT NULL,
-        file_name TEXT,          
-        file_path TEXT,     
-        file_mimetype TEXT,
         FOREIGN KEY (channel_uuid) REFERENCES Channel(uuid),
         FOREIGN KEY (user_uuid) REFERENCES User(uuid)
     )`);
@@ -404,9 +401,6 @@ const getMessageByUuid = function (uuid, callback) {
     SELECT
         m.uuid AS message_uuid,
         m.message,
-        m.file_name,
-        m.file_path,
-        m.file_mimetype,
         m.created_on AS message_created_on,
         m.modified_on AS message_modified_on,
         c.uuid AS channel_uuid,
@@ -455,11 +449,6 @@ const getMessageByUuid = function (uuid, callback) {
         modified_on: row.user_modified_on,
       },
       message: row.message,
-      file: {
-        name: row.file_name,
-        path: row.file_path,
-        mimetype: row.file_mimetype,
-      },
       created_on: row.message_created_on,
       modified_on: row.message_modified_on,
     };
@@ -611,9 +600,6 @@ const getMessageByChannel = function (uuid, callback) {
     SELECT
         m.uuid AS message_uuid,
         m.message,
-        m.file_name,
-        m.file_path,
-        m.file_mimetype,
         m.created_on AS message_created_on,
         m.modified_on AS message_modified_on,
         c.uuid AS channel_uuid,
@@ -659,11 +645,6 @@ const getMessageByChannel = function (uuid, callback) {
         const result = rows.map(row => ({
           uuid: row.message_uuid,
           message: row.message,
-          file: {
-            name: row.file_name,
-            path: row.file_path,
-            mimetype: row.file_mimetype,
-          },
           created_on: row.message_created_on,
           modified_on: row.message_modified_on,
           channel: {

@@ -2,7 +2,7 @@ const multer = require('multer');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
-// Configure Multer storage to generate custom filenames
+// Multer storage configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/'); // Set the destination folder for uploaded files
@@ -11,14 +11,29 @@ const storage = multer.diskStorage({
     // Generate a UUID for the file name
     const fileUuid = uuidv4();
 
-    // Get the file extension from the MIME type
+    // Get the file extension from the original file name
     const fileExtension = path.extname(file.originalname);
 
-    // Combine UUID with file extension (e.g., `123e4567-e89b-12d3-a456-426614174000.png`)
+    // Combine UUID with file extension
     cb(null, `${fileUuid}${fileExtension}`);
   }
 });
 
-const upload = multer({ storage });
+// Multer configuration with file size and type restrictions
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 25 * 1024 * 1024, // 25MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+
+    if (allowedMimeTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type! Only JPEG, PNG, and PDF are allowed.'));
+    }
+  },
+});
 
 module.exports = upload;
