@@ -484,8 +484,8 @@ const getMessageByUuid = function (uuid, callback) {
 
 const addMessage = function (messagePayload, callback) {
   const query = `
-    INSERT INTO message (uuid, channel_uuid, user_uuid, message, created_on, modified_on, file_name, file_path, file_mimetype) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    INSERT INTO message (uuid, channel_uuid, user_uuid, message, created_on, modified_on) 
+    VALUES (?, ?, ?, ?, ?, ?)`;
 
   console.log('messagePayload :: ', messagePayload);
 
@@ -497,9 +497,6 @@ const addMessage = function (messagePayload, callback) {
     messagePayload.message,
     messagePayload.created_on,
     messagePayload.modified_on,
-    messagePayload.file?.file_name || null, // Use file details if present, else null
-    messagePayload.file?.file_path || null, // Use file path if present, else null
-    messagePayload.file?.file_mimetype || null // Use file MIME type if present, else null
   ];
 
   db.run(query, params, function (err) {
