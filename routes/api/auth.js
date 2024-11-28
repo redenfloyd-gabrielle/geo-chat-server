@@ -12,7 +12,7 @@ const SECRET_KEY = process.env.SECRET_KEY; // Replace with an environment variab
 // Add a new user
 router.post('/register', async (req, res) => {
 
-  const { fullname, username, email, password } = req.body;
+  const { fullname, username, email, password, image_url } = req.body;
 
   // Validation
   if (!fullname || !username || !email || !password) {
@@ -55,6 +55,7 @@ router.post('/register', async (req, res) => {
         fullname,
         username,
         email,
+        image_url: image_url || null,
         password: hashedPassword,
         created_on: createdOn,
         modified_on: createdOn

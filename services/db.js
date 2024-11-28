@@ -19,6 +19,7 @@ const createTables = function () {
         email TEXT NOT NULL UNIQUE,
         username TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL,
+        image_url TEXT,
         created_on INTEGER NOT NULL,
         modified_on INTEGER NOT NULL
     )`);
@@ -117,7 +118,7 @@ const getUserByUUID = function (uuid, callback) {
 
 const addUser = function (userPayload, callback) {
 
-  const query = 'INSERT INTO user (uuid, fullname, username, email, password, created_on, modified_on) VALUES (?, ?, ?, ?, ?, ?, ?)';
+  const query = 'INSERT INTO user (uuid, fullname, username, email, password, image_url, created_on, modified_on) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
   console.log('userPayload :: ', userPayload);
   const params = [
     userPayload.uuid,
@@ -125,6 +126,7 @@ const addUser = function (userPayload, callback) {
     userPayload.username,
     userPayload.email,
     userPayload.password,
+    userPayload.image_url,
     userPayload.created_on,
     userPayload.modified_on
   ];
