@@ -39,6 +39,9 @@ const createTables = function () {
         message TEXT NOT NULL,
         created_on INTEGER NOT NULL,
         modified_on INTEGER NOT NULL,
+        file_name TEXT,          
+        file_path TEXT,     
+        file_mimetype TEXT,
         FOREIGN KEY (channel_uuid) REFERENCES Channel(uuid),
         FOREIGN KEY (user_uuid) REFERENCES User(uuid)
     )`);
@@ -401,6 +404,9 @@ const getMessageByUuid = function (uuid, callback) {
     SELECT
         m.uuid AS message_uuid,
         m.message,
+        m.file_name,
+        m.file_path,
+        m.file_mimetype,
         m.created_on AS message_created_on,
         m.modified_on AS message_modified_on,
         c.uuid AS channel_uuid,
@@ -449,6 +455,11 @@ const getMessageByUuid = function (uuid, callback) {
         modified_on: row.user_modified_on,
       },
       message: row.message,
+      file: {
+        name: row.file_name,
+        path: row.file_path,
+        mimetype: row.file_mimetype,
+      },
       created_on: row.message_created_on,
       modified_on: row.message_modified_on,
     };
@@ -483,10 +494,13 @@ const getMessageByUuid = function (uuid, callback) {
 // };
 
 const addMessage = function (messagePayload, callback) {
-  const query =
-    'INSERT INTO message (uuid, channel_uuid, user_uuid, message, created_on, modified_on) VALUES (?, ?, ?, ?, ?, ?)';
-  console.log('userPayload :: ', messagePayload);
+  const query = `
+    INSERT INTO message (uuid, channel_uuid, user_uuid, message, created_on, modified_on, file_name, file_path, file_mimetype) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
+  console.log('messagePayload :: ', messagePayload);
+
+  // Prepare the parameters for the query
   const params = [
     messagePayload.uuid,
     messagePayload.channel_uuid,
@@ -494,6 +508,9 @@ const addMessage = function (messagePayload, callback) {
     messagePayload.message,
     messagePayload.created_on,
     messagePayload.modified_on,
+    messagePayload.file?.file_name || null, // Use file details if present, else null
+    messagePayload.file?.file_path || null, // Use file path if present, else null
+    messagePayload.file?.file_mimetype || null // Use file MIME type if present, else null
   ];
 
   db.run(query, params, function (err) {
@@ -594,6 +611,9 @@ const getMessageByChannel = function (uuid, callback) {
     SELECT
         m.uuid AS message_uuid,
         m.message,
+        m.file_name,
+        m.file_path,
+        m.file_mimetype,
         m.created_on AS message_created_on,
         m.modified_on AS message_modified_on,
         c.uuid AS channel_uuid,
@@ -639,6 +659,11 @@ const getMessageByChannel = function (uuid, callback) {
         const result = rows.map(row => ({
           uuid: row.message_uuid,
           message: row.message,
+          file: {
+            name: row.file_name,
+            path: row.file_path,
+            mimetype: row.file_mimetype,
+          },
           created_on: row.message_created_on,
           modified_on: row.message_modified_on,
           channel: {
@@ -702,14 +727,14 @@ const getLocationByChannel = function (channelUuid, callback) {
       return callback(err);
     }
     callback(null, row || []);
-  }); 
+  });
 };
 
 const addLocation = function (locationPayload, callback) {
 
   const query = 'INSERT INTO location (uuid, channel_uuid, user_uuid, latitude, longitude, weather, created_on, modified_on) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
   console.log('userPayload :: ', locationPayload);
-  
+
   const params = [
     locationPayload.uuid,
     locationPayload.channel_uuid,

@@ -7,7 +7,7 @@ const dayjs = require('dayjs');
 
 router.post('/', async (req, res) => {
 
-  const {channel_uuid, user_uuid,latitude, longitude, weather } = req.body;
+  const { channel_uuid, user_uuid, latitude, longitude, weather } = req.body;
 
   // Validation
   if (!channel_uuid || !user_uuid) {
