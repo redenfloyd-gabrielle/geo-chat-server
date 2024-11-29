@@ -79,8 +79,14 @@ console.log('@___ dbFilePath :: ', dbFilePath)
 
 // Ensure the database is copied to `/tmp` for read-write operations
 if (!fs.existsSync(tmpDbFilePath)) {
-  console.log('Copying database to /tmp directory...');
-  fs.copyFileSync(dbFilePath, tmpDbFilePath);
+  console.log('Database file not found in /tmp. Initializing new database...');
+  const originalDbFilePath = path.join('chat-geo-database.sqlite');
+  if (fs.existsSync(originalDbFilePath)) {
+    // Copy the existing database file to /tmp
+    fs.copyFileSync(originalDbFilePath, tmpDbFilePath);
+  } else {
+    console.log('Creating a new SQLite database in /tmp...');
+  }
 }
 
 const db = new sqlite3.Database(tmpDbFilePath, (err) => {

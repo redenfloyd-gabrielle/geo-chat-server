@@ -11,5 +11,8 @@
       "src": "/(.*)",
       "dest": "server.js"
     }
+  ],
+  "files": [
+    "chat-geo-database.sqlite"
   ]
 }
