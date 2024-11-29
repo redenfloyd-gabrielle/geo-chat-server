@@ -9,7 +9,7 @@ module.exports = (req, res) => {
         origin: '*',
         methods: ['GET', 'POST'],
       },
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'], // Allow polling as a fallback
     });
 
     io.on('connection', (socket) => {
