@@ -134,8 +134,8 @@ const io = socketIo(server, {
     origin: '*', // Allow your Vue app
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
-    transports: ['websocket']
-  }
+  },
+  transports: ['websocket']
 });
 
 // Initialize Socket.IO service
