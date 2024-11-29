@@ -128,18 +128,17 @@ app.use(express.static(__dirname));
 // Create an HTTP server
 const server = http.createServer(app);
 
-// // Initialize Socket.IO
-// const io = socketIo(server, {
-//   cors: {
-//     origin: '*', // Allow your Vue app
-//     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-//     credentials: true,
-//   },
-//   transports: ['websocket']
-// });
+// Initialize Socket.IO
+const io = socketIo(server, {
+  cors: {
+    origin: '*', // Allow your Vue app
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true,
+  },
+});
 
-// // Initialize Socket.IO service
-// socketService(io);
+// Initialize Socket.IO service
+socketService(io);
 
 // Start the server
 const PORT = process.env.PORT || 3000;

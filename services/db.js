@@ -1,92 +1,19 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
-const { Database } = require('@sqlitecloud/drivers');
 
-const dbPath = "sqlitecloud://chax5m37nz.sqlite.cloud:8860/chat-geo-database.sqlite?apikey=ME3fBzefwVTijnWeQNoFIQXcb16U6N5a4OGxJ1aZ2l4"
-const db = new Database(dbPath);
-
-// Attempt a simple query to confirm connection
-db.get("SELECT 1", (err, row) => {
+// Create SQLite database (memory or persistent file)
+const db = new sqlite3.Database('chat-geo-database.sqlite', (err) => {
   if (err) {
-    console.error("Error connecting to the database:", err.message);
+    console.error('Error opening database:', err.message);
   } else {
-    console.log("Successfully connected to the SQLite database.");
+    console.log('Connected to SQLite database.');
+    createTables()
   }
 });
 
-// Create SQLite database (memory or persistent file)
-// const db = new sqlite3.Database(dbPath, (err) => {
-//   if (err) {
-//     console.error('Error opening database:', err.message);
-//   } else {
-//     console.log('Connected to SQLite database.');
-//     // initializeDatabase()
-//   }
-// });
-
-// const createTables = function () {
-//   // Create tables
-//   db.serialize(() => {
-//     db.run(`CREATE TABLE IF NOT EXISTS user (
-//         uuid TEXT PRIMARY KEY,
-//         fullname TEXT NOT NULL,
-//         email TEXT NOT NULL UNIQUE,
-//         username TEXT NOT NULL UNIQUE,
-//         password TEXT NOT NULL,
-//         image_url TEXT,
-//         created_on INTEGER NOT NULL,
-//         modified_on INTEGER NOT NULL
-//     )`);
-
-//     db.run(`CREATE TABLE IF NOT EXISTS channel (
-//         uuid TEXT PRIMARY KEY,
-//         name TEXT NOT NULL,
-//         user_uuids TEXT NOT NULL,
-//         type TEXT CHECK(type IN ('Group', 'Direct Message')),
-//         created_on INTEGER NOT NULL,
-//         modified_on INTEGER NOT NULL
-//     )`);
-
-//     db.run(`CREATE TABLE IF NOT EXISTS message (
-//         uuid TEXT PRIMARY KEY,
-//         channel_uuid TEXT NOT NULL,
-//         user_uuid TEXT NOT NULL,
-//         message TEXT NOT NULL,
-//         created_on INTEGER NOT NULL,
-//         modified_on INTEGER NOT NULL,
-//         FOREIGN KEY (channel_uuid) REFERENCES Channel(uuid),
-//         FOREIGN KEY (user_uuid) REFERENCES User(uuid)
-//     )`);
-
-//     db.run(`CREATE TABLE IF NOT EXISTS location (
-//         uuid TEXT PRIMARY KEY,
-//         channel_uuid TEXT NOT NULL,
-//         user_uuid TEXT NOT NULL,
-//         latitude INTEGER NOT NULL,
-//         longitude INTEGER NOT NULL,
-//         weather TEXT,
-//         created_on INTEGER NOT NULL,
-//         modified_on INTEGER NOT NULL,
-//         FOREIGN KEY (channel_uuid) REFERENCES Channel(uuid),
-//         FOREIGN KEY (user_uuid) REFERENCES User(uuid)
-//     )`);
-
-//     db.run(`CREATE TABLE IF NOT EXISTS friendship (
-//         uuid TEXT PRIMARY KEY,
-//         user1_uuid TEXT NOT NULL,
-//         user2_uuid TEXT NOT NULL,
-//         status TEXT CHECK (status IN ('Pending', 'Accepted', 'Blocked')),
-//         created_on INTEGER NOT NULL,
-//         modified_on INTEGER NOT NULL,
-//         FOREIGN KEY (user1_uuid) REFERENCES User(uuid),
-//         FOREIGN KEY (user2_uuid) REFERENCES User(uuid)
-//     )`);
-//   });
-// }
-
-// Function to initialize database tables
-function initializeDatabase() {
+const createTables = function () {
+  // Create tables
   db.exec(`
     CREATE TABLE IF NOT EXISTS user (
       uuid TEXT PRIMARY KEY,
