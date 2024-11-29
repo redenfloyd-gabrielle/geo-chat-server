@@ -4,6 +4,17 @@ const fs = require('fs');
 const { Database } = require('@sqlitecloud/drivers');
 
 const dbPath = "sqlitecloud://chax5m37nz.sqlite.cloud:8860/chat-geo-database.sqlite?apikey=ME3fBzefwVTijnWeQNoFIQXcb16U6N5a4OGxJ1aZ2l4"
+const db = new Database(dbPath);
+
+// Attempt a simple query to confirm connection
+db.get("SELECT 1", (err, row) => {
+  if (err) {
+    console.error("Error connecting to the database:", err.message);
+  } else {
+    console.log("Successfully connected to the SQLite database.");
+  }
+});
+
 // Create SQLite database (memory or persistent file)
 // const db = new sqlite3.Database(dbPath, (err) => {
 //   if (err) {
@@ -13,7 +24,6 @@ const dbPath = "sqlitecloud://chax5m37nz.sqlite.cloud:8860/chat-geo-database.sql
 //     // initializeDatabase()
 //   }
 // });
-const db = new Database(dbPath);
 
 // const createTables = function () {
 //   // Create tables
