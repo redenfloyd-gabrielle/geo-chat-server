@@ -2,15 +2,15 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
 
-// // Create SQLite database (memory or persistent file)
-// const db = new sqlite3.Database('./chat-geo-database.sqlite', (err) => {
-//   if (err) {
-//     console.error('Error opening database:', err.message);
-//   } else {
-//     console.log('Connected to SQLite database.');
-//     createTables()
-//   }
-// });
+// Create SQLite database (memory or persistent file)
+const db = new sqlite3.Database('./chat-geo-database.sqlite', (err) => {
+  if (err) {
+    console.error('Error opening database:', err.message);
+  } else {
+    console.log('Connected to SQLite database.');
+    initializeDatabase()
+  }
+});
 
 // const createTables = function () {
 //   // Create tables
@@ -71,32 +71,6 @@ const fs = require('fs');
 //     )`);
 //   });
 // }
-
-// Initialize SQLite Database
-const dbFilePath = path.join('chat-geo-database.sqlite');
-const tmpDbFilePath = path.join('/tmp', 'chat-geo-database.sqlite');
-console.log('@___ dbFilePath :: ', dbFilePath)
-
-// Ensure the database is copied to `/tmp` for read-write operations
-if (!fs.existsSync(tmpDbFilePath)) {
-  console.log('Database file not found in /tmp. Initializing new database...');
-  const originalDbFilePath = path.join('chat-geo-database.sqlite');
-  if (fs.existsSync(originalDbFilePath)) {
-    // Copy the existing database file to /tmp
-    fs.copyFileSync(originalDbFilePath, tmpDbFilePath);
-  } else {
-    console.log('Creating a new SQLite database in /tmp...');
-  }
-}
-
-const db = new sqlite3.Database(tmpDbFilePath, (err) => {
-  if (err) {
-    console.error('Error opening database:', err.message);
-  } else {
-    console.log('Connected to SQLite database.');
-    initializeDatabase();
-  }
-});
 
 // Function to initialize database tables
 function initializeDatabase() {
