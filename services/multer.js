@@ -5,7 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 // Multer storage configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const tmpDir = path.join(__dirname, 'tmp');
+    const tmpDir = path.join('tmp');
     cb(null, tmpDir);// Set the destination folder for uploaded files
   },
   filename: (req, file, cb) => {
