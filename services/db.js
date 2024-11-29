@@ -144,7 +144,7 @@ const addUser = function (userPayload, callback) {
 };
 
 const updateUser = function (uuid, userPayload, callback) {
-  const { fullname, username, email, modified_on } = userPayload;
+  const { fullname, username, email, modified_on, image_url } = userPayload;
   const updates = [];
   const params = [];
 
@@ -152,13 +152,20 @@ const updateUser = function (uuid, userPayload, callback) {
     updates.push('fullname = ?');
     params.push(fullname);
   }
+
   if (username) {
     updates.push('username = ?');
     params.push(username);
   }
+
   if (email) {
     updates.push('email = ?');
     params.push(email);
+  }
+
+  if (image_url) {
+    updates.push('image_url = ?');
+    params.push(image_url);
   }
 
   if (modified_on) {

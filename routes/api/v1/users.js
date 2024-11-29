@@ -31,7 +31,7 @@ router.get('/:uuid', (req, res) => {
 
 router.put('/:uuid', (req, res) => {
   const { uuid } = req.params;
-  const { fullname, username, email } = req.body; // Assuming these fields can be updated
+  const { fullname, username, email, image_url } = req.body; // Assuming these fields can be updated
 
   console.log('req.params', req.params);
 
@@ -45,6 +45,7 @@ router.put('/:uuid', (req, res) => {
   if (fullname) payload.fullname = fullname;
   if (username) payload.username = username;
   if (email) payload.email = email;
+  if (image_url) payload.image_url = image_url;
 
 
   payload.modified_on = modifiedOn
