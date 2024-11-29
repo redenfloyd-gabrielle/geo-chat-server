@@ -73,8 +73,9 @@ const fs = require('fs');
 // }
 
 // Initialize SQLite Database
-const dbFilePath = path.join(__dirname, 'chat-geo-database.sqlite');
+const dbFilePath = path.join('chat-geo-database.sqlite');
 const tmpDbFilePath = path.join('/tmp', 'chat-geo-database.sqlite');
+console.log('@___ dbFilePath :: ', dbFilePath)
 
 // Ensure the database is copied to `/tmp` for read-write operations
 if (!fs.existsSync(tmpDbFilePath)) {
