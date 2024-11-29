@@ -4,7 +4,7 @@ const fs = require('fs');
 
 // Define the database path for Vercel's environment
 const tmpDbPath = path.join('/tmp', 'chat-geo-database.sqlite');
-const sourceDbPath = path.join(__dirname, 'chat-geo-database.sqlite');
+const sourceDbPath = path.join('chat-geo-database.sqlite');
 
 // Ensure the database is copied to /tmp if it doesn't exist there
 if (!fs.existsSync(tmpDbPath)) {
