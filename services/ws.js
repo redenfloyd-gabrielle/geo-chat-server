@@ -1,7 +1,8 @@
 const { Server } = require('socket.io');
 
 module.exports = (req, res) => {
-  if (req.method === 'GET') {
+  if (!res.socket.server.io) {
+    console.log('Starting Socket.IO server...');
     // Allow WebSocket connections
     const io = new Server(res.socket.server, {
       cors: {
@@ -38,9 +39,7 @@ module.exports = (req, res) => {
 
     // This is a workaround to make sure Vercel keeps the WebSocket server alive.
     res.socket.server.io = io;
-
-    res.status(200).send('WebSocket server is running');
-  } else {
-    res.status(405).send('Method Not Allowed');
   }
+  res.status(200).send('WebSocket server is running');
+
 };
