@@ -1,16 +1,19 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
+const { Database } = require('@sqlitecloud/drivers');
 
+const dbPath = "sqlitecloud://chax5m37nz.sqlite.cloud:8860/chat-geo-database.sqlite?apikey=ME3fBzefwVTijnWeQNoFIQXcb16U6N5a4OGxJ1aZ2l4"
 // Create SQLite database (memory or persistent file)
-const db = new sqlite3.Database('./chat-geo-database.sqlite', (err) => {
-  if (err) {
-    console.error('Error opening database:', err.message);
-  } else {
-    console.log('Connected to SQLite database.');
-    initializeDatabase()
-  }
-});
+// const db = new sqlite3.Database(dbPath, (err) => {
+//   if (err) {
+//     console.error('Error opening database:', err.message);
+//   } else {
+//     console.log('Connected to SQLite database.');
+//     // initializeDatabase()
+//   }
+// });
+const db = new Database(dbPath);
 
 // const createTables = function () {
 //   // Create tables
