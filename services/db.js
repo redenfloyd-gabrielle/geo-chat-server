@@ -1,24 +1,12 @@
-const path = require('path');
-const sqlite3 = require('sqlite3');
-const fs = require('fs');
+const sqlite3 = require('sqlite3').verbose();
 
-// Define the database path for Vercel's environment
-const tmpDbPath = path.join('/tmp', 'chat-geo-database.sqlite');
-const sourceDbPath = path.join('chat-geo-database.sqlite');
-
-// Ensure the database is copied to /tmp if it doesn't exist there
-if (!fs.existsSync(tmpDbPath)) {
-  console.log('Copying database to /tmp directory...');
-  fs.copyFileSync(sourceDbPath, tmpDbPath);
-}
-
-// Connect to the database in /tmp
-const db = new sqlite3.Database(tmpDbPath, (err) => {
+// Create SQLite database (memory or persistent file)
+const db = new sqlite3.Database('./chat-geo-database.sqlite', (err) => {
   if (err) {
     console.error('Error opening database:', err.message);
   } else {
     console.log('Connected to SQLite database.');
-    createTables();
+    createTables()
   }
 });
 
