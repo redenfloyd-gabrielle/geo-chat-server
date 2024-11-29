@@ -133,7 +133,8 @@ const io = socketIo(server, {
   cors: {
     origin: '*', // Allow your Vue app
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true
+    credentials: true,
+    transports: ['websocket']
   }
 });
 
