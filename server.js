@@ -60,6 +60,8 @@ app.use('/api/v1/messages', messageRoutes);
 app.use('/api/v1/locations', locationRoutes);
 app.use('/api/v1/friendships', friendshipRoutes);
 app.use('/api/v1/files', filesRoutes);
+
+app.options('*', cors());
 // Use API routes with authentication middleware
 // app.use('/api/v1/users', authenticateToken, userRoutes);
 // app.use('/api/v1/channels', authenticateToken, channeRoutes);
