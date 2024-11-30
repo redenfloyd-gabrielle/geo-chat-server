@@ -425,6 +425,7 @@ const getMessageByUuid = function (uuid, callback) {
         u.uuid AS user_uuid,
         u.fullname AS user_fullname,
         u.email AS user_email,
+        u.image_url as user_image_url,
         u.username AS user_username,
         u.created_on AS user_created_on,
         u.modified_on AS user_modified_on
@@ -458,6 +459,7 @@ const getMessageByUuid = function (uuid, callback) {
         fullname: row.user_fullname,
         email: row.user_email,
         username: row.user_username,
+        image_url: row.user_image_url,
         created_on: row.user_created_on,
         modified_on: row.user_modified_on,
       },
@@ -622,6 +624,7 @@ const getMessageByChannel = function (uuid, callback) {
         u.fullname AS user_fullname,
         u.email AS user_email,
         u.username AS user_username,
+        u.image_url as user_image_url,
         u.created_on AS user_created_on,
         u.modified_on AS user_modified_on
     FROM message m
@@ -671,6 +674,7 @@ const getMessageByChannel = function (uuid, callback) {
             fullname: row.user_fullname,
             email: row.user_email,
             username: row.user_username,
+            image_url: row.user_image_url,
             created_on: row.user_created_on,
             modified_on: row.user_modified_on
           }
@@ -870,12 +874,14 @@ const getAllFriendships = function (callback) {
       u1.fullname AS user1_fullname,
       u1.email AS user1_email,
       u1.username AS user1_username,
+      u1.image_url as user1_image_url,
       u1.created_on AS user1_created_on,
       u1.modified_on AS user1_modified_on,
       u2.uuid AS user2_uuid,
       u2.fullname AS user2_fullname,
       u2.email AS user2_email,
       u2.username AS user2_username,
+      u2.image_url as user2_image_url,
       u2.created_on AS user2_created_on,
       u2.modified_on AS user2_modified_on
     FROM friendship f
@@ -897,6 +903,7 @@ const getAllFriendships = function (callback) {
         fullname: row.user1_fullname,
         email: row.user1_email,
         username: row.user1_username,
+        image_url: row.user1_image_url,
         created_on: row.user1_created_on,
         modified_on: row.user1_modified_on
       },
@@ -906,6 +913,7 @@ const getAllFriendships = function (callback) {
         fullname: row.user2_fullname,
         email: row.user2_email,
         username: row.user2_username,
+        image_url: row.user2_image_url,
         created_on: row.user2_created_on,
         modified_on: row.user2_modified_on
       },
@@ -931,12 +939,14 @@ const getFriendshipByUuid = function (uuid, callback) {
       u1.fullname AS user1_fullname,
       u1.email AS user1_email,
       u1.username AS user1_username,
+      u1.image_url as user1_image_url,
       u1.created_on AS user1_created_on,
       u1.modified_on AS user1_modified_on,
       u2.uuid AS user2_uuid,
       u2.fullname AS user2_fullname,
       u2.email AS user2_email,
       u2.username AS user2_username,
+      u2.image_url as user2_image_url,
       u2.created_on AS user2_created_on,
       u2.modified_on AS user2_modified_on
     FROM friendship f
@@ -963,6 +973,7 @@ const getFriendshipByUuid = function (uuid, callback) {
         fullname: row.user1_fullname,
         email: row.user1_email,
         username: row.user1_username,
+        image_url: row.user1_image_url,
         created_on: row.user1_created_on,
         modified_on: row.user1_modified_on
       },
@@ -972,6 +983,7 @@ const getFriendshipByUuid = function (uuid, callback) {
         fullname: row.user2_fullname,
         email: row.user2_email,
         username: row.user2_username,
+        image_url: row.user2_image_url,
         created_on: row.user2_created_on,
         modified_on: row.user2_modified_on
       },
@@ -997,12 +1009,14 @@ const getFriendshipByUserUuid = function (uuid, callback) {
       u1.fullname AS user1_fullname,
       u1.email AS user1_email,
       u1.username AS user1_username,
+      u1.image_url as user1_image_url,
       u1.created_on AS user1_created_on,
       u1.modified_on AS user1_modified_on,
       u2.uuid AS user2_uuid,
       u2.fullname AS user2_fullname,
       u2.email AS user2_email,
       u2.username AS user2_username,
+      u2.image_url as user2_image_url,
       u2.created_on AS user2_created_on,
       u2.modified_on AS user2_modified_on
     FROM friendship f
@@ -1029,6 +1043,7 @@ const getFriendshipByUserUuid = function (uuid, callback) {
         fullname: row.user1_fullname,
         email: row.user1_email,
         username: row.user1_username,
+        image_url: row.user1_image_url,
         created_on: row.user1_created_on,
         modified_on: row.user1_modified_on
       },
@@ -1038,6 +1053,7 @@ const getFriendshipByUserUuid = function (uuid, callback) {
         fullname: row.user2_fullname,
         email: row.user2_email,
         username: row.user2_username,
+        image_url: row.user2_image_url,
         created_on: row.user2_created_on,
         modified_on: row.user2_modified_on
       },
