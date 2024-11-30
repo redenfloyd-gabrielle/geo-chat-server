@@ -120,6 +120,7 @@ router.post('/login', async (req, res) => {
             fullname: user.fullname,
             username: user.username,
             email: user.email,
+            image_url: user.image_url,
             created_on: user.created_on,
             modified_on: user.modified_on
           }
