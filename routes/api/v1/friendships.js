@@ -125,7 +125,6 @@ router.delete('/:uuid', (req, res) => {
     if (!result) {
       return res.status(404).json({ status: "fail", error: 'Friendship not found' });
     }
-    result.friendship.pop('password')
     return res.json({
       status: "success",
       message: result.message,
