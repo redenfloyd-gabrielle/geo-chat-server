@@ -75,7 +75,7 @@ const createTables = function () {
 }
 
 const getAllUsers = function (callback) {
-  db.all('SELECT uuid, fullname, email, username, created_on, modified_on FROM user', [], (err, rows) => {
+  db.all('SELECT uuid, fullname, email, username, image_url, created_on, modified_on FROM user', [], (err, rows) => {
     callback(err, rows);
   });
 };
@@ -107,7 +107,7 @@ const getUserByUsername = function (username, callback) {
 };
 
 const getUserByUUID = function (uuid, callback) {
-  const query = 'SELECT uuid, fullname, email, username, created_on, modified_on FROM user WHERE uuid = ?';
+  const query = 'SELECT uuid, fullname, email, username, image_url, created_on, modified_on FROM user WHERE uuid = ?';
   db.get(query, [uuid], (err, row) => {
     if (err) {
       return callback(err);
