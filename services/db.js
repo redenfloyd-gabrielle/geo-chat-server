@@ -1,16 +1,40 @@
 const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
 const fs = require('fs');
+const { v4: uuidv4 } = require('uuid');
+const { Database } = require('@sqlitecloud/drivers');
+require('dotenv').config();
 
-// Create SQLite database (memory or persistent file)
-const db = new sqlite3.Database('chat-geo-database.sqlite', (err) => {
+const DB_CONNECTION = process.env.SQLITE_CONNECTION;
+
+console.log('@___ DB_CONNECTION :: ', DB_CONNECTION)
+if (!DB_CONNECTION) {
+  console.error('DB_CONNECTION environment variable is missing!');
+  process.exit(1);
+}
+
+
+const db = new Database(DB_CONNECTION);
+
+
+// Check the connection to ensure it's working
+db.run('SELECT 1', function (err) {
   if (err) {
-    console.error('Error opening database:', err.message);
+    console.error('Database connection failed:', err.message);
   } else {
-    console.log('Connected to SQLite database.');
-    createTables()
+    console.log('Database connection successful.');
+    createTables();
   }
 });
+
+// Create SQLite database (memory or persistent file)
+// const db = new sqlite3.Database('chat-geo-database.sqlite', (err) => {
+//   if (err) {
+//     console.error('Error opening database:', err.message);
+//   } else {
+//     console.log('Connected to SQLite database.');
+//     createTables()
+//   }
+// });
 
 const createTables = function () {
   // Create tables
@@ -21,9 +45,10 @@ const createTables = function () {
       email TEXT NOT NULL UNIQUE,
       username TEXT NOT NULL UNIQUE,
       password TEXT NOT NULL,
-      image_url TEXT,
+      image_file TEXT,
       created_on INTEGER NOT NULL,
-      modified_on INTEGER NOT NULL
+      modified_on INTEGER NOT NULL,
+      FOREIGN KEY (image_file) REFERENCES files(uuid)
     );
     CREATE TABLE IF NOT EXISTS channel (
       uuid TEXT PRIMARY KEY,
@@ -64,6 +89,14 @@ const createTables = function () {
       modified_on INTEGER NOT NULL,
       FOREIGN KEY (user1_uuid) REFERENCES user(uuid),
       FOREIGN KEY (user2_uuid) REFERENCES user(uuid)
+    );
+    CREATE TABLE IF NOT EXISTS files (
+      uuid TEXT PRIMARY KEY, 
+      filename TEXT, 
+      filedata BLOB,
+      mimetype TEXT,
+      created_on INTEGER NOT NULL,
+      modified_on INTEGER NOT NULL
     );
   `, (err) => {
     if (err) {
@@ -1143,6 +1176,73 @@ const deleteFriendship = function (uuid, callback) {
   });
 };
 
+const getAllFiles = function (callback) {
+  const query = 'SELECT uuid, filename, mimetype FROM files';
+
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      return callback(err, null);
+    }
+    callback(null, rows);
+  });
+};
+
+
+const getFileByUuid = function (fileUuid, callback) {
+  // Define the SQL query to get the file from the database by UUID
+  const query = 'SELECT filename, filedata, mimetype FROM files WHERE uuid = ?';
+
+  // Execute the query to retrieve the file details from the database
+  db.get(query, [fileUuid], (err, row) => {
+    if (err) {
+      // Handle any errors that occurred during the query
+      return callback(err, null);
+    }
+
+    if (!row) {
+      // If no file is found, return an error message
+      return callback(new Error('File not found'), null);
+    }
+
+    // Encode the file data as a base64 string
+    const base64FileData = row.filedata.toString('base64');
+
+    // Return the file details and the base64-encoded file data to the callback
+    callback(null, {
+      filename: row.filename,
+      mimetype: row.mimetype,
+      filedata: row.filedata,  // Keep filedata as binary Buffer
+    });
+  });
+};
+
+const uploadFile = function (file, callback) {
+  const fileUuid = uuidv4(); // Generate a unique UUID for the file
+  const currentTime = Date.now();
+  const { buffer, originalname, mimetype } = file;
+  // Define the SQL query to insert the file into the database
+  const query = 'INSERT INTO files (uuid, filename, filedata, mimetype, created_on, modified_on) VALUES (?, ?, ?, ?, ?, ?)';
+
+  // Execute the query to insert the file into the database
+  db.run(query, [fileUuid, originalname, buffer, mimetype, currentTime, currentTime], function (err) {
+    if (err) {
+      // Handle any errors that occurred during the insert
+      return callback(err, null);
+    }
+
+    // Encode the filedata as a base64 string for inclusion in the response
+    const base64FileData = buffer.toString('base64');
+
+    // Return the file details and the base64-encoded file data to the callback
+    callback(null, {
+      uuid: fileUuid,
+      filename: originalname,
+      filedata: base64FileData,
+      mimetype: mimetype,
+    });
+  });
+};
+
 
 
 module.exports = {
@@ -1177,5 +1277,8 @@ module.exports = {
   getFriendshipByUuid,
   getFriendshipByUserUuid,
   updateFriendship,
-  deleteFriendship
+  deleteFriendship,
+  getAllFiles,
+  getFileByUuid,
+  uploadFile
 };

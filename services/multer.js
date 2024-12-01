@@ -3,21 +3,7 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
 // Multer storage configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // Set the destination folder for uploaded files
-  },
-  filename: (req, file, cb) => {
-    // Generate a UUID for the file name
-    const fileUuid = uuidv4();
-
-    // Get the file extension from the original file name
-    const fileExtension = path.extname(file.originalname);
-
-    // Combine UUID with file extension
-    cb(null, `${fileUuid}${fileExtension}`);
-  }
-});
+const storage = multer.memoryStorage();
 
 // Multer configuration with file size and type restrictions
 const upload = multer({
