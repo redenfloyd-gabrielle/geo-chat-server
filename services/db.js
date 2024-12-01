@@ -45,10 +45,9 @@ const createTables = function () {
       email TEXT NOT NULL UNIQUE,
       username TEXT NOT NULL UNIQUE,
       password TEXT NOT NULL,
-      image_file TEXT,
+      image_url TEXT,
       created_on INTEGER NOT NULL,
-      modified_on INTEGER NOT NULL,
-      FOREIGN KEY (image_file) REFERENCES files(uuid)
+      modified_on INTEGER NOT NULL
     );
     CREATE TABLE IF NOT EXISTS channel (
       uuid TEXT PRIMARY KEY,
@@ -306,15 +305,17 @@ const getChannelsByUserUuid = function (userUuid, callback) {
     // Parse `user_uuids` from each channel and fetch user details
     const allUserUuids = Array.from(
       new Set(
-        rows.flatMap(row => JSON.parse(row.user_uuids)) // Parse and flatten user_uuids
+        rows.map(row => JSON.parse(row.user_uuids)) // Parse and flatten user_uuids
       )
     );
-
+    console.log('@___ allUserUuids :: ', allUserUuids)
     const userQuery = `
       SELECT uuid, fullname, email, username, created_on, modified_on
       FROM "user"
       WHERE uuid IN (${allUserUuids.map(() => '?').join(', ')});
     `;
+
+    console.log('@___ userQuery :: ', userQuery, allUserUuids)
 
     db.all(userQuery, allUserUuids, (userErr, userRows) => {
       if (userErr) {
