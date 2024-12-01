@@ -17,13 +17,22 @@ router.get('/', (req, res) => {
 
     const { protocol, hostname } = req;
     const port = req.socket.localPort;
+    let baseUrl = `${protocol}://${hostname}:${port}`
+
+    const ipRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+
+    // Check if hostname is not an IP address or localhost
+    if (!ipRegex.test(hostname) && hostname !== 'localhost') {
+      baseUrl = `${protocol}://${hostname}`
+    }
+
 
     // Return the list of file metadata (without actual file data)
     res.status(200).json({
       status: "success",
       data: files.map((file) => ({
         file_uuid: file.uuid,
-        file_path: `${protocol}://${hostname}:${port}/api/v1/files/${file.uuid}`, // URL to access the file
+        file_path: `${baseUrl}/api/v1/files/${file.uuid}`, // URL to access the file
         filename: file.filename,
         mimetype: file.mimetype,
       })),
@@ -79,14 +88,21 @@ router.post('/upload', (req, res) => {
 
       const { protocol, hostname } = req;
       const port = req.socket.localPort;
+      let baseUrl = `${protocol}://${hostname}:${port}`
 
+      const ipRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+
+      // Check if hostname is not an IP address or localhost
+      if (!ipRegex.test(hostname) && hostname !== 'localhost') {
+        baseUrl = `${protocol}://${hostname}`
+      }
       // Return the file details and the base64 file data in the response
       res.status(200).json({
         status: "success",
         message: 'File uploaded successfully!',
         data: {
           file_uuid: fileDetails.uuid,
-          file_path: `${protocol}://${hostname}:${port}/api/v1/files/${fileDetails.uuid}`,
+          file_path: `${baseUrl}/api/v1/files/${fileDetails.uuid}`, // URL to access the file
           filename: fileDetails.filename,
           // filedata: `data:${fileDetails.mimetype};base64,${fileDetails.filedata}`,
           mimetype: fileDetails.mimetype
