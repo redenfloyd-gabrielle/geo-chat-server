@@ -15,7 +15,7 @@ router.get('/', (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { user1_uuid, user2_uuid } = req.body;
+  const { user1_uuid, user2_uuid, status } = req.body;
 
   // Validation
   if (!user1_uuid || !user2_uuid) {
@@ -32,7 +32,7 @@ router.post('/', async (req, res) => {
     uuid,
     user1_uuid,
     user2_uuid,
-    status: 'Accepted',
+    status: status,
     created_on: createdOn,
     modified_on: createdOn
   }
@@ -85,7 +85,7 @@ router.put('/:uuid', (req, res) => {
   console.log('req.params', req.params);
 
   // Validate request body
-  if (!fullname && !username && !email) {
+  if (!user1_uuid && !user2_uuid && !status) {
     return res.status(400).json({ status: "fail", error: 'At least one field must be provided for update' });
   }
   const modifiedOn = dayjs().unix();
